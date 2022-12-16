@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bot index{% endblock %}
+
+{% block body %}
+    <div class="contain-fluid h-100 d-flex flex-row">
+        {{ include('personal_account_menu.html.twig', {is_active: 'bots'}) }}
+
+        <div class="d-flex flex-column p-3">
+            {% for bot in bots %}
+                <div class="container-fluid w-100 mb-3">
+                    <div class="card">
+                        <div class="card-header d-flex flex-row align-content-between">
+                            <span class="text-black-50 ms-auto small"> От: ## </span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title"> {{ bot.title }} </h5>
+                            <p class="card-text"> {{ bot.description }} </p>
+                            <a href="{{ path('app_bot_show', {'id': bot.id}) }}"
+                               class="btn btn-sm btn-primary">Перейти</a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <h5>Нет доступных ботов</h5>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

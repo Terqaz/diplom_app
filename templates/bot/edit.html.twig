@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Bot{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto" style="max-width:550px;">
+        <a href="{{ path('app_user_show') }}" class="btn btn-outline-secondary mb-3">
+            Назад </a>
+        <h3 class="mb-2 text-center">Редактировать бота</h3>
+
+        {{ include('bot/_form.html.twig', {'button_label': 'Сохранить'}) }}
+    </div>
+{% endblock %}

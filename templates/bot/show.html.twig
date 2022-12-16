@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bot{% endblock %}
+
+{% block body %}
+    <h1>Bot</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ bot.id }}</td>
+            </tr>
+            <tr>
+                <th>Title</th>
+                <td>{{ bot.title }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ bot.description }}</td>
+            </tr>
+            <tr>
+                <th>IsPrivate</th>
+                <td>{{ bot.isPrivate ? 'Yes' : 'No' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_bot_index') }}">back to list</a>
+
+    <a href="{{ path('app_bot_edit', {'id': bot.id}) }}">edit</a>
+
+    {{ include('bot/_delete_form.html.twig') }}
+{% endblock %}

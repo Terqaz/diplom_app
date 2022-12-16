@@ -1,0 +1,51 @@
+<div class="d-flex flex-column flex-shrink-0 p-3 pt-4 h-100 border-end" style="width: 280px;">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
+        <svg class="bi pe-none me-2" width="40" height="32">
+            <use xlink:href="#bootstrap"></use>
+        </svg>
+        <span class="fs-4">Личный кабинет</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-3">
+        <li class="nav-item">
+            {% if is_active == 'personal_data' %}
+                <div class="nav-link active">
+                    Персональные данные
+                </div>
+            {% else %}
+                <a href="{{ path('app_user_show') }}" class="nav-link link-dark">
+                    Персональные данные
+                </a>
+            {% endif %}
+        </li>
+        <li>
+            {% if is_active == 'bots' %}
+                <div class="nav-link active">
+                    Боты
+                </div>
+            {% else %}
+                <a href="{{ path('app_user_bot_index') }}" class="nav-link link-dark">
+                    Боты
+                </a>
+            {% endif %}
+        </li>
+        <li>
+            {% if is_active == 'surveys' %}
+                <div class="nav-link active">
+                    Опросы
+                </div>
+            {% else %}
+                <a href="{{ path('app_user_survey_index') }}" class="nav-link link-dark">
+                    Опросы
+                </a>
+            {% endif %}
+        </li>
+    </ul>
+    <hr>
+    <div class="mt-0 mb-auto d-flex flex-column">
+        <a href="{{ path('app_bot_new') }}" class="btn btn-outline-primary me-auto mb-3">
+            Новый бот </a>
+        <a href="{{ path('app_survey_new') }}" class="btn btn-outline-primary me-auto mb-3">
+            Новый опрос </a>
+    </div>
+</div>

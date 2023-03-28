@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\RespondentAccessRepository;
+use App\Repository\SurveyAccessRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: RespondentAccessRepository::class)]
-class RespondentAccess
+#[ORM\Entity(repositoryClass: SurveyAccessRepository::class)]
+class SurveyAccess
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -14,13 +14,13 @@ class RespondentAccess
     private ?int $id = null;
 
     #[ORM\Column(length: 32)]
-    private ?string $property = null;
+    private ?string $propertyName = null;
 
     #[ORM\ManyToOne(inversedBy: 'surveyAccesses')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Respondent $respondent = null;
 
-    #[ORM\ManyToOne(inversedBy: 'respondentAccesses')]
+    #[ORM\ManyToOne(inversedBy: 'surveyAccesses')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Survey $survey = null;
 
@@ -29,14 +29,14 @@ class RespondentAccess
         return $this->id;
     }
 
-    public function getProperty(): ?string
+    public function getPropertyName(): ?string
     {
-        return $this->property;
+        return $this->propertyName;
     }
 
-    public function setProperty(string $property): self
+    public function setPropertyName(string $propertyName): self
     {
-        $this->property = $property;
+        $this->propertyName = $propertyName;
 
         return $this;
     }

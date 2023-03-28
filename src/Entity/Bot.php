@@ -21,8 +21,8 @@ class Bot
     #[ORM\Column(length: 1024, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column]
-    private ?bool $isPrivate = null;
+    #[ORM\Column(options: ['default' => true])]
+    private ?bool $isPrivate = true;
 
     #[ORM\OneToMany(mappedBy: 'bot', targetEntity: BotUser::class)]
     private Collection $botUsers;

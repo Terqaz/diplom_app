@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\RespondentAnswerRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RespondentAnswerRepository::class)]
@@ -13,8 +14,11 @@ class RespondentAnswer
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $value = null;
+
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    private ?int $serialNumber = null;
 
     #[ORM\ManyToOne(inversedBy: 'respondentAnswers')]
     #[ORM\JoinColumn(nullable: false)]
@@ -23,6 +27,9 @@ class RespondentAnswer
     #[ORM\ManyToOne(inversedBy: 'respondentAnswers')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Question $question = null;
+
+    #[ORM\ManyToOne(inversedBy: 'respondentAnswer')]
+    private ?AnswerVariant $answerVariant = null;
 
     public function getId(): ?int
     {
@@ -61,6 +68,30 @@ class RespondentAnswer
     public function setQuestion(?Question $question): self
     {
         $this->question = $question;
+
+        return $this;
+    }
+
+    public function getAnswerVariant(): ?AnswerVariant
+    {
+        return $this->answerVariant;
+    }
+
+    public function setAnswerVariant(?AnswerVariant $answerVariant): self
+    {
+        $this->answerVariant = $answerVariant;
+
+        return $this;
+    }
+
+    public function getSerialNumber(): ?int
+    {
+        return $this->serialNumber;
+    }
+
+    public function setSerialNumber(?int $serialNumber): self
+    {
+        $this->serialNumber = $serialNumber;
 
         return $this;
     }

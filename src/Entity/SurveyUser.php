@@ -8,6 +8,14 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: SurveyUserRepository::class)]
 class SurveyUser
 {
+    public const QUESTIONER = 'questioner'; // Анкетер
+    public const VIEWER = 'viewer'; // Просматривающий результаты
+
+    public const ROLES = [
+        self::QUESTIONER,
+        self::VIEWER,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -18,11 +26,10 @@ class SurveyUser
 
     #[ORM\ManyToOne(inversedBy: 'surveyUsers')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?BotUser $botUser = null;
+    private ?Survey $survey = null;
 
     #[ORM\ManyToOne(inversedBy: 'surveyUsers')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Survey $survey = null;
+    private ?User $userData = null;
 
     public function getId(): ?int
     {
@@ -41,18 +48,6 @@ class SurveyUser
         return $this;
     }
 
-    public function getBotUser(): ?BotUser
-    {
-        return $this->botUser;
-    }
-
-    public function setBotUser(?BotUser $botUser): self
-    {
-        $this->botUser = $botUser;
-
-        return $this;
-    }
-
     public function getSurvey(): ?Survey
     {
         return $this->survey;
@@ -61,6 +56,18 @@ class SurveyUser
     public function setSurvey(?Survey $survey): self
     {
         $this->survey = $survey;
+
+        return $this;
+    }
+
+    public function getUserData(): ?User
+    {
+        return $this->userData;
+    }
+
+    public function setUserData(?User $userData): self
+    {
+        $this->userData = $userData;
 
         return $this;
     }

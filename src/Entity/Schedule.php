@@ -14,20 +14,20 @@ class Schedule
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?bool $isOnce = null;
-
     #[ORM\Column(length: 32)]
     private ?string $type = null;
 
     #[ORM\Column(length: 128)]
     private ?string $repeatValues = null;
 
-    #[ORM\Column]
-    private ?bool $isNoticeBeforeStart = null;
-
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $lastRepeat = null;
+
+    #[ORM\Column(options: ['default' => true])]
+    private ?bool $isOnce = true;
+
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $noticeBefore = null;
 
     #[ORM\OneToOne(inversedBy: 'schedule', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
@@ -58,18 +58,6 @@ class Schedule
     public function setRepeatValues(string $repeatValues): self
     {
         $this->repeatValues = $repeatValues;
-
-        return $this;
-    }
-
-    public function isIsNoticeBeforeStart(): ?bool
-    {
-        return $this->isNoticeBeforeStart;
-    }
-
-    public function setIsNoticeBeforeStart(bool $isNoticeBeforeStart): self
-    {
-        $this->isNoticeBeforeStart = $isNoticeBeforeStart;
 
         return $this;
     }
@@ -106,6 +94,18 @@ class Schedule
     public function setSurvey(Survey $survey): self
     {
         $this->survey = $survey;
+
+        return $this;
+    }
+
+    public function getNoticeBefore(): ?string
+    {
+        return $this->noticeBefore;
+    }
+
+    public function setNoticeBefore(?string $noticeBefore): self
+    {
+        $this->noticeBefore = $noticeBefore;
 
         return $this;
     }

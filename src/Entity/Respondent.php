@@ -21,7 +21,7 @@ class Respondent
     #[ORM\Column(nullable: true, unique: true)]
     private ?int $vkontakteId = null;
 
-    #[ORM\Column(length: 180, nullable: true, unique: true)]
+    #[ORM\Column(length: 128, nullable: true, unique: true)]
     private ?string $email = null;
 
     #[ORM\Column(length: 16, nullable: true, unique: true)]
@@ -30,13 +30,17 @@ class Respondent
     #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: RespondentAnswer::class)]
     private Collection $respondentAnswers;
 
-    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: RespondentAccess::class)]
+    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: RespondentAttempt::class, orphanRemoval: true)]
+    private Collection $respondentAttempts;
+
+    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: SurveyAccess::class, orphanRemoval: true)]
     private Collection $surveyAccesses;
 
     public function __construct()
     {
         $this->surveyAccesses = new ArrayCollection();
         $this->respondentAnswers = new ArrayCollection();
+        $this->respondentAttempts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -93,36 +97,6 @@ class Respondent
     }
 
     /**
-     * @return Collection<int, RespondentAccess>
-     */
-    public function getSurveyAccesses(): Collection
-    {
-        return $this->surveyAccesses;
-    }
-
-    public function addSurveyAccess(RespondentAccess $surveyAccess): self
-    {
-        if (!$this->surveyAccesses->contains($surveyAccess)) {
-            $this->surveyAccesses->add($surveyAccess);
-            $surveyAccess->setRespondent($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSurveyAccess(RespondentAccess $surveyAccess): self
-    {
-        if ($this->surveyAccesses->removeElement($surveyAccess)) {
-            // set the owning side to null (unless already changed)
-            if ($surveyAccess->getRespondent() === $this) {
-                $surveyAccess->setRespondent(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection<int, RespondentAnswer>
      */
     public function getRespondentAnswers(): Collection
@@ -146,6 +120,66 @@ class Respondent
             // set the owning side to null (unless already changed)
             if ($respondentAnswer->getRespondent() === $this) {
                 $respondentAnswer->setRespondent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RespondentAttempt>
+     */
+    public function getRespondentAttempts(): Collection
+    {
+        return $this->respondentAttempts;
+    }
+
+    public function addRespondentAttempt(RespondentAttempt $respondentAttempt): self
+    {
+        if (!$this->respondentAttempts->contains($respondentAttempt)) {
+            $this->respondentAttempts->add($respondentAttempt);
+            $respondentAttempt->setRespondent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRespondentAttempt(RespondentAttempt $respondentAttempt): self
+    {
+        if ($this->respondentAttempts->removeElement($respondentAttempt)) {
+            // set the owning side to null (unless already changed)
+            if ($respondentAttempt->getRespondent() === $this) {
+                $respondentAttempt->setRespondent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, SurveyAccess>
+     */
+    public function getSurveyAccesses(): Collection
+    {
+        return $this->surveyAccesses;
+    }
+
+    public function addSurveyAccess(SurveyAccess $surveyAccess): self
+    {
+        if (!$this->surveyAccesses->contains($surveyAccess)) {
+            $this->surveyAccesses->add($surveyAccess);
+            $surveyAccess->setRespondent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSurveyAccess(SurveyAccess $surveyAccess): self
+    {
+        if ($this->surveyAccesses->removeElement($surveyAccess)) {
+            // set the owning side to null (unless already changed)
+            if ($surveyAccess->getRespondent() === $this) {
+                $surveyAccess->setRespondent(null);
             }
         }
 

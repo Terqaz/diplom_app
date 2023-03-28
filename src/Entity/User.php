@@ -46,9 +46,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'userData', targetEntity: BotUser::class)]
     private Collection $botUsers;
 
+    #[ORM\OneToMany(mappedBy: 'userData', targetEntity: SurveyUser::class)]
+    private Collection $surveyUsers;
+
     public function __construct()
     {
         $this->botUsers = new ArrayCollection();
+        $this->surveyUsers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -193,6 +197,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($botUser->getUserData() === $this) {
                 $botUser->setUserData(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, SurveyUser>
+     */
+    public function getSurveyUsers(): Collection
+    {
+        return $this->surveyUsers;
+    }
+
+    public function addSurveyUser(SurveyUser $surveyUser): self
+    {
+        if (!$this->surveyUsers->contains($surveyUser)) {
+            $this->surveyUsers->add($surveyUser);
+            $surveyUser->setUserData($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSurveyUser(SurveyUser $surveyUser): self
+    {
+        if ($this->surveyUsers->removeElement($surveyUser)) {
+            // set the owning side to null (unless already changed)
+            if ($surveyUser->getUserData() === $this) {
+                $surveyUser->setUserData(null);
             }
         }
 

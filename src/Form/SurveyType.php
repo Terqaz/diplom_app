@@ -54,9 +54,10 @@ class SurveyType extends AbstractType
                 'help' => self::IS_PRIVATE_HELP,
             ])
             ->add('bot', ChoiceType::class, [
+                'label' => 'Бот',
                 //todo
             ])
-            ->add('schedule') //todo
+//            ->add('schedule') //todo
         ;
     }
 

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Bot;
 use App\Form\BotType;
 use App\Repository\BotRepository;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +21,7 @@ class BotController extends AbstractController
     }
 
     #[Route('/new', name: 'app_bot_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
     public function new(Request $request, BotRepository $botRepository): Response
     {
         $bot = new Bot();
@@ -47,30 +49,35 @@ class BotController extends AbstractController
     }
 
     #[Route('/{id}/survey/add}', name: 'app_bot_survey_add', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function addSurvey(BotRepository $botRepository): Response
     {
         return new Response('dev');
     }
 
     #[Route('/{id}/survey/remove}', name: 'app_bot_survey_remove', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function removeSurvey(BotRepository $botRepository): Response
     {
         return new Response('dev');
     }
 
     #[Route('/{id}/user/add}', name: 'app_bot_user_add', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function addUser(BotRepository $botRepository): Response
     {
         return new Response('dev');
     }
 
     #[Route('/{id}/user/remove}', name: 'app_bot_user_remove', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function removeUser(BotRepository $botRepository): Response
     {
         return new Response('dev');
     }
 
     #[Route('/{id}/edit', name: 'app_bot_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
     public function edit(Request $request, Bot $bot, BotRepository $botRepository): Response
     {
         $form = $this->createForm(BotType::class, $bot);
@@ -87,14 +94,4 @@ class BotController extends AbstractController
             'form' => $form,
         ]);
     }
-
-//    #[Route('/{id}', name: 'app_bot_delete', methods: ['POST'])]
-//    public function delete(Request $request, Bot $bot, BotRepository $botRepository): Response
-//    {
-//        if ($this->isCsrfTokenValid('delete'.$bot->getId(), $request->request->get('_token'))) {
-//            $botRepository->remove($bot, true);
-//        }
-//
-//        return $this->redirectToRoute('app_bot_index', [], Response::HTTP_SEE_OTHER);
-//    }
 }

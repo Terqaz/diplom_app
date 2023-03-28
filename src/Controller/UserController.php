@@ -7,6 +7,7 @@ use App\Form\UserType;
 use App\Repository\BotRepository;
 use App\Repository\SurveyRepository;
 use App\Repository\UserRepository;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,6 +16,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/personal')]
+#[IsGranted('ROLE_USER')]
 class UserController extends AbstractController
 {
     #[Route('/', name: 'app_user_show', methods: ['GET'])]

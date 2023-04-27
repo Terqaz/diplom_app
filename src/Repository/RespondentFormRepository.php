@@ -2,26 +2,26 @@
 
 namespace App\Repository;
 
-use App\Entity\RespondentAttempt;
+use App\Entity\RespondentForm;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<RespondentAttempt>
+ * @extends ServiceEntityRepository<RespondentForm>
  *
- * @method RespondentAttempt|null find($id, $lockMode = null, $lockVersion = null)
- * @method RespondentAttempt|null findOneBy(array $criteria, array $orderBy = null)
- * @method RespondentAttempt[]    findAll()
- * @method RespondentAttempt[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method RespondentForm|null find($id, $lockMode = null, $lockVersion = null)
+ * @method RespondentForm|null findOneBy(array $criteria, array $orderBy = null)
+ * @method RespondentForm[]    findAll()
+ * @method RespondentForm[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class RespondentAttemptRepository extends ServiceEntityRepository
+class RespondentFormRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, RespondentAttempt::class);
+        parent::__construct($registry, RespondentForm::class);
     }
 
-    public function save(RespondentAttempt $entity, bool $flush = false): void
+    public function save(RespondentForm $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -30,7 +30,7 @@ class RespondentAttemptRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(RespondentAttempt $entity, bool $flush = false): void
+    public function remove(RespondentForm $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 
@@ -40,7 +40,7 @@ class RespondentAttemptRepository extends ServiceEntityRepository
     }
 
 //    /**
-//     * @return RespondentAttempt[] Returns an array of RespondentAttempt objects
+//     * @return RespondentForm[] Returns an array of RespondentForm objects
 //     */
 //    public function findByExampleField($value): array
 //    {
@@ -54,7 +54,7 @@ class RespondentAttemptRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-//    public function findOneBySomeField($value): ?RespondentAttempt
+//    public function findOneBySomeField($value): ?RespondentForm
 //    {
 //        return $this->createQueryBuilder('r')
 //            ->andWhere('r.exampleField = :val')

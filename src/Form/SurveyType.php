@@ -55,9 +55,9 @@ class SurveyType extends AbstractType
             ])
             ->add('bot', ChoiceType::class, [
                 'label' => 'Бот',
-                //todo
+                //TODO
             ])
-//            ->add('schedule') //todo
+//            ->add('schedule') //TODO
         ;
     }
 

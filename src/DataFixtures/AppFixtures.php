@@ -2,10 +2,22 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\AnswerVariant;
 use App\Entity\Bot;
+use App\Entity\BotUser;
+use App\Entity\Question;
 use App\Entity\Respondent;
+use App\Entity\RespondentAnswer;
+use App\Entity\RespondentForm;
+use App\Entity\Survey;
+use App\Entity\SurveyUser;
 use App\Entity\User;
+use DataFixtures\FixturesData as Data;
+use DateInterval;
+use DateTime;
+use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -23,9 +35,6 @@ class AppFixtures extends Fixture
         $this->userPasswordHasher = $userPasswordHasher;
     }
 
-    /**
-     * @throws Exception
-     */
     public function load(ObjectManager $manager): void
     {
         $this->manager = $manager;
@@ -39,78 +48,117 @@ class AppFixtures extends Fixture
             $users[] = $user;
             $this->manager->persist($user);
         }
+
+        /** @var Respondent[] */
         $respondents = [];
         for ($i = 1; $i <= 100; $i++) {
             $respondent = $this->createRespondent($i);
             $respondents[] = $respondent;
             $this->manager->persist($respondent);
         }
+
+        // Создаем ботов
+
         $privateBots = [];
-        foreach (self::BOTS_DATA as $botData) {
-            $privateBots[] = $this->createBot($botData, true);
+
+        foreach (Data::BOTS as $botData) {
+            $privateBots[] = $this->createBot($botData, true, botUsersData: [
+                ['user' => $users[0], 'role' => BotUser::ADMIN],
+                ['user' => $users[1], 'role' => BotUser::QUESTIONER],
+                ['user' => $users[2], 'role' => BotUser::VIEWER],
+                ['user' => $users[3], 'role' => BotUser::VIEWER],
+            ]);
         }
+
         $publicBots = [];
-        foreach (self::BOTS_DATA as $botData) {
-            $privateBots[] = $this->createBot($botData, false);
+
+        foreach (Data::BOTS as $botData) {
+            $publicBots[] = $this->createBot($botData, false, botUsersData: [
+                ['user' => $users[0], 'role' => BotUser::ADMIN],
+                ['user' => $users[1], 'role' => BotUser::QUESTIONER],
+            ]);
+        }
+
+        // TODO разобраться насчет приватности
+        // Создаем опросы
+
+        $privateBotsSurveys = $this->createSurveysInBots($privateBots, botSurveyUsersData: [
+            ['user' => $users[0], 'role' => SurveyUser::QUESTIONER],
+            ['user' => $users[1], 'role' => SurveyUser::QUESTIONER],
+            ['user' => $users[2], 'role' => SurveyUser::VIEWER],
+            ['user' => $users[3], 'role' => SurveyUser::VIEWER],
+        ], surveysIsPrivate: true);
+
+        $privateSurveyUsersData = [
+            ['user' => $users[0], 'role' => SurveyUser::QUESTIONER],
+            ['user' => $users[1], 'role' => SurveyUser::QUESTIONER],
+        ];
+
+        $publicBotsSurveys = $this->createSurveysInBots($publicBots, $privateSurveyUsersData, surveysIsPrivate: false);
+
+        // Добавляем ответы на опросы
+
+        $this->addAnswersToSurveys($privateBotsSurveys, array_slice($respondents, 0, 3));
+        $this->addAnswersToSurveys($publicBotsSurveys, array_slice($respondents, 0, 3));
+
+        // Сохраняем данные
+
+        $bots = array_merge($privateBots, $publicBots);
+        foreach ($bots as $bot) {
+            $manager->persist($bot);
         }
 
         $manager->flush();
     }
 
-    private const USER_LAST_NAMES = [
-        'Макаров', 'Андреев', 'Ковалёв', 'Ильин', 'Гусев', 'Титов', 'Кузьмин', 'Кудрявцев', 'Баранов', 'Куликов',
-        'Сорокин', 'Захаров', 'Борисов', 'Королёв'
-    ];
-
-    private const USER_FIRST_NAMES = [
-        'male' => [
-            'Михаил', 'Никита', 'Матвей', 'Роман', 'Егор', 'Арсений', 'Иван', 'Евгений', 'Даниил', 'Тимофей',
-            'Владислав', 'Игорь', 'Владимир', 'Павел', 'Руслан', 'Марк',
-        ],
-        'female' => [
-            'Анна', 'Мария', 'Елена', 'Дарья', 'Алина', 'Ирина', 'Екатерина', 'Арина', 'Полина', 'Ольга', 'Юлия',
-            'Татьяна', 'Наталья', 'Виктория', 'Елизавета', 'Ксения', 'Милана', 'Вероника', 'Алиса', 'Валерия',
-            'Александра', 'Ульяна', 'Кристина', 'София', 'Марина'
-        ]
-    ];
-
-    private const USER_PATRONYMICS = [
-        'male' => [
-            'Михайлович', 'Матвеевич', 'Романович', 'Егоров', 'Иванович', 'Евгеньевич', 'Данилович', 'Тимофеевич',
-            'Владиславович', 'Игоревич', 'Владимирович', 'Павлович', 'Русланович'
-        ],
-        'female' => [
-            'Михайловна', 'Матвеевна', 'Романовна', 'Егоровна', 'Ивановна', 'Евгеньевна', 'Даниловна', 'Тимофеевна',
-            'Владиславовна', 'Игоревна', 'Владимировна', 'Павловна', 'Руслановна'
-        ]
-    ];
-
     /**
-     * @throws Exception
+     * @return Survey[]
      */
+    public function createSurveysInBots(array $bots, array $surveyUsersData, bool $surveysIsPrivate): array
+    {
+        $surveys = [];
+
+        foreach (Data::BOTS as $i => $botData) {
+            foreach ($botData['surveys'] as $surveyId) {
+                $survey = $this->createSurvey(
+                    Data::SURVEYS[$surveyId],
+                    $surveyUsersData,
+                    $surveysIsPrivate
+                );
+
+                $bots[$i]->addSurvey($survey);
+                $surveys[] = $survey;
+            }
+        }
+
+        return $surveys;
+    }
+
     private function createUser(int $i): User
     {
         $user = new User();
 
         if (random_int(0, 1) === 1) { // male
             $user
-                ->setLastName(self::randElement(self::USER_LAST_NAMES))
-                ->setFirstName(self::randElement(self::USER_FIRST_NAMES['male']));
+                ->setLastName(self::randElement(Data::LAST_NAMES))
+                ->setFirstName(self::randElement(Data::FIRST_NAMES['male']));
             if (random_int(1, 100) > 85) {
-                $user->setPatronymic(self::randElement(self::USER_PATRONYMICS['male']));
+                $user->setPatronymic(self::randElement(Data::PATRONYMICS['male']));
             }
         } else { // female
             $user
-                ->setLastName(self::randElement(self::USER_LAST_NAMES) . 'а')
-                ->setFirstName(self::randElement(self::USER_FIRST_NAMES['female']));
+                ->setLastName(self::randElement(Data::LAST_NAMES) . 'а')
+                ->setFirstName(self::randElement(Data::FIRST_NAMES['female']));
             if (random_int(1, 100) > 85) {
-                $user->setPatronymic(self::randElement(self::USER_PATRONYMICS['female']));
+                $user->setPatronymic(self::randElement(Data::PATRONYMICS['female']));
             }
         }
+
         if (random_int(0, 1) === 1) {
-            $user->setPhone($this->createPhone());
+            $user->setPhone(self::createPhone());
         }
-        $user->setEmail($this->createEmail('user.' . $i));
+
+        $user->setEmail(self::createEmail('user.' . $i));
         $user->setPassword(
             $this->userPasswordHasher->hashPassword(
                 $user,
@@ -120,9 +168,6 @@ class AppFixtures extends Fixture
         return $user;
     }
 
-    /**
-     * @throws Exception
-     */
     private function createRespondent(int $i): Respondent
     {
         $respondent = new Respondent();
@@ -134,103 +179,169 @@ class AppFixtures extends Fixture
         }
 
         if (random_int(0, 1) === 1) {
-            $respondent->setEmail($this->createEmail('respondent.' . $i));
+            $respondent->setEmail(self::createEmail('respondent.' . $i));
         }
         if (random_int(0, 1) === 1) {
-            $respondent->setPhone($this->createPhone());
+            $respondent->setPhone(self::createPhone());
         }
 
         return $respondent;
     }
 
-    const BOTS_DATA = [
-        1 => [
-            'title' => 'Опросы ЛГТУ',
-            'description' => 'Официальный бот ЛГТУ',
-            'surveys' => [
-                [
-                    'title' => 'Опрос о качестве образования в осеннем семестре 2022',
-                    'questions' => [
-
-                    ],
-                    'jumpConditions' => [
-                        'subconditions' => [
-
-                        ]
-                    ],
-                ], [
-                    'title' => 'Нужно ли вам больше лавочек?',
-                    'questions' => [
-                        [
-                            'serialNumber' => 1,
-                            'title' => 'Напишите вашу фамилию',
-                            'canGiveOwnAnswer' => true
-                        ], [
-                            'serialNumber' => 2,
-                            'title' => 'Выберите ваш факультет',
-                            'canGiveOwnAnswer' => false,
-                            'variants' => ['ИМиТ', 'МИ', 'ИСНЭП', 'ИСФ', 'ФТФ', 'ФАИ', 'ЗФ', 'ФДО', 'УК', 'НИИ']
-                        ], [
-                            'serialNumber' => 3,
-                            'title' => 'Введите номер курса',
-                            'canGiveOwnAnswer' => false,
-                            'intervalBorders' => '1-6'
-                        ], [
-                            'serialNumber' => 4,
-                            'title' => 'Перечислите корпуса, в которых вы чаще всего бываете',
-                            'canGiveOwnAnswer' => false,
-                            'variants' => ['1', '2', '3', '4', '5', '9', 'Административный', 'Аудиторный', 'Спортивный комплекс'],
-                            'maxVariants' => 3,
-                        ], [
-                            'serialNumber' => 5,
-                            'title' => 'Как часто бывают заняты лавочки в указанных вами корпусах?',
-                            'canGiveOwnAnswer' => false,
-                            'variants' => ['Никогда', 'Иногда', 'Редко', 'Часто', 'Всегда'],
-                        ], [
-                            'serialNumber' => 6,
-                            'title' => 'Как вы считаете, нужно ли установить в данных корпусах больше лавочек?',
-                            'canGiveOwnAnswer' => false,
-                            'variants' => ['Нет', 'Не знаю', 'Да'],
-                        ]
-                    ]
-                ]
-            ]
-        ],
-        2 => [
-            'title' => 'Опросы ФАИ',
-            'description' => 'Здесь мы проводим очень интересные опросы',
-            'surveys' => [
-                [
-                    'title' => 'Кого повесить на доску почета?'
-                ]
-            ]
-        ],
-        3 => [
-
-        ],
-        4 => [
-
-        ],
-    ];
-
-    private function createBot(array $botData, bool $isPrivate): Bot
+    private function createBot(array $botData, bool $isPrivate, array $botUsersData): Bot
     {
-        $bot = new Bot();
+        $bot = (new Bot())
+            ->setTitle($botData['title'])
+            ->setDescription($botData['description'] ?? null)
+            ->setIsPrivate($isPrivate);
 
-        $bot
+        foreach ($botUsersData as $botUserData) {
+            $bot->addBotUser(
+                (new BotUser())
+                    ->setUserData($botUserData['user'])
+                    ->setRole($botUserData['role'])
+            );
+        }
 
         return $bot;
     }
 
+    private function createSurvey(array $surveyData, array $surveyUsersData, bool $isPrivate): Survey
+    {
+        $survey = (new Survey())
+            ->setTitle($surveyData['title'])
+            ->setDescription($surveyData['description'] ?? null)
+            ->setIsPrivate($isPrivate);
+
+        foreach ($surveyData['questions'] as $questionData) {
+            $survey->addQuestion($this->createQuestion($questionData));
+        }
+
+        foreach ($surveyUsersData as $surveyUserData) {
+            $survey->addSurveyUser(
+                (new SurveyUser())
+                    ->setUserData($surveyUserData['user'])
+                    ->setRole($surveyUserData['role'])
+            );
+        }
+
+        return $survey;
+    }
+
+    private function createQuestion(array $questionData): Question
+    {
+        $question = (new Question())
+            ->setType($questionData['type'])
+            ->setCanGiveOwnAnswer($questionData['canGiveOwnAnswer'])
+            ->setSerialNumber($questionData['serialNumber'])
+            ->setTitle($questionData['title']);
+
+        foreach ($questionData['variants'] as $i => $variantName) {
+            $question->addVariant(
+                (new AnswerVariant())
+                    ->setSerialNumber($i) // TODO null?
+                    ->setValue($variantName)
+            );
+        }
+
+        return $question;
+    }
+
     /**
-     * @throws Exception
+     * @param Survey[] $surveys
+     * @param Respondent[] $respondents
+     * @return void
      */
-    public function createPhone(): string
+    private function addAnswersToSurveys(array $surveys, array $respondents): void
+    {
+        $date = (new DateTimeImmutable())
+            ->sub(new DateInterval('P6M'));
+
+        foreach ($surveys as $si => $survey) {
+            foreach ($respondents as $ri => $respondent) {
+                $form = (new RespondentForm())
+                    ->setAddingDate($date);
+
+                $respondent->addRespondentForm($form);
+                $survey->addRespondentForm($form);
+
+                $this->addAnswersToQuestions(
+                    $respondent,
+                    $survey->getQuestions(),
+                    Data::ANSWERS[$si][$ri]
+                );
+
+                $date->add(new DateInterval('P1D'));
+            }
+        }
+    }
+
+    /**
+     * @param Respondent $respondent
+     * @param Collection<Question> $questions
+     * @param array $answersData
+     * @return void
+     */
+    private function addAnswersToQuestions(Respondent $respondent, Collection $questions, array $answersData): void
+    {
+        foreach ($questions as $qi => $question) {
+            $answerData = $answersData[$qi];
+
+            if (isset($answerData['value'])) {
+                $answer = $this->createRespondentAnswer(
+                    value: $answerData['value']
+                );
+
+                $question->addRespondentAnswer($answer);
+                $respondent->addRespondentAnswer($answer);
+            } else if (isset($answerData['variant'])) {
+                $answer = $this->createRespondentAnswer(
+                    variant: $question->getVariants()[$answerData['variant']]
+                );
+
+                $question->addRespondentAnswer($answer);
+                $respondent->addRespondentAnswer($answer);
+            } else if (isset($answerData['variants'])) {
+                $serialNumber = RespondentAnswer::FIRST_SERIAL_NUMBER;
+
+                foreach ($answerData['variants'] as $vi) {
+                    $answer = $this->createRespondentAnswer(
+                        variant: $question->getVariants()[$vi],
+                        serialNumber: $serialNumber
+                    );
+                    ++$serialNumber;
+
+                    $question->addRespondentAnswer($answer);
+                    $respondent->addRespondentAnswer($answer);
+                }
+            }
+        }
+    }
+
+    /**
+     * Либо value, либо variant
+     */
+    private function createRespondentAnswer(?string $value = null, ?AnswerVariant $variant = null, ?int $serialNumber = null): RespondentAnswer
+    {
+        $answer = new RespondentAnswer();
+
+        if (null !== $value) {
+            $answer->setValue($value);
+        } else if (null !== $variant) {
+            $answer
+                ->setAnswerVariant($variant)
+                ->setSerialNumber($serialNumber);
+        }
+
+        return $answer;
+    }
+
+    private static function createPhone(): string
     {
         return '+' . random_int(10 ** 10, 10 ** 13 - 1);
     }
 
-    public function createEmail(string $prefix): string
+    private static function createEmail(string $prefix): string
     {
         return $prefix . '@example.com';
     }

@@ -4,13 +4,17 @@ namespace App\Entity;
 
 use App\Repository\BotUserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BotUserRepository::class)]
 class BotUser
 {
-    public const ADMIN = 'admin'; // Администратор бота
-    public const QUESTIONER = 'questioner'; // Анкетер
-    public const VIEWER = 'viewer'; // Просматривающий результаты
+    /** Администратор бота */
+    public const ADMIN = 'admin';
+    /** Анкетер */
+    public const QUESTIONER = 'questioner';
+    /** Просматривающий результаты */
+    public const VIEWER = 'viewer';
 
     public const ROLES = [
         self::ADMIN,
@@ -24,6 +28,7 @@ class BotUser
     private ?int $id = null;
 
     #[ORM\Column(length: 32)]
+    #[Assert\Choice(choices: BotUser::ROLES)]
     private ?string $role = null;
 
     #[ORM\ManyToOne(inversedBy: 'botUsers')]

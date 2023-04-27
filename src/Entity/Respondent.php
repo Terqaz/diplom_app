@@ -27,20 +27,20 @@ class Respondent
     #[ORM\Column(length: 16, nullable: true, unique: true)]
     private ?string $phone = null;
 
-    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: RespondentAnswer::class)]
+    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: RespondentAnswer::class, cascade: ['persist'])]
     private Collection $respondentAnswers;
 
-    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: RespondentAttempt::class, orphanRemoval: true)]
-    private Collection $respondentAttempts;
+    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: RespondentForm::class, orphanRemoval: true, cascade: ['persist'])]
+    private Collection $respondentForms;
 
-    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: SurveyAccess::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: SurveyAccess::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $surveyAccesses;
 
     public function __construct()
     {
         $this->surveyAccesses = new ArrayCollection();
         $this->respondentAnswers = new ArrayCollection();
-        $this->respondentAttempts = new ArrayCollection();
+        $this->respondentForms = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -127,29 +127,29 @@ class Respondent
     }
 
     /**
-     * @return Collection<int, RespondentAttempt>
+     * @return Collection<int, RespondentForm>
      */
-    public function getRespondentAttempts(): Collection
+    public function getRespondentForms(): Collection
     {
-        return $this->respondentAttempts;
+        return $this->respondentForms;
     }
 
-    public function addRespondentAttempt(RespondentAttempt $respondentAttempt): self
+    public function addRespondentForm(RespondentForm $respondentForm): self
     {
-        if (!$this->respondentAttempts->contains($respondentAttempt)) {
-            $this->respondentAttempts->add($respondentAttempt);
-            $respondentAttempt->setRespondent($this);
+        if (!$this->respondentForms->contains($respondentForm)) {
+            $this->respondentForms->add($respondentForm);
+            $respondentForm->setRespondent($this);
         }
 
         return $this;
     }
 
-    public function removeRespondentAttempt(RespondentAttempt $respondentAttempt): self
+    public function removeRespondentForm(RespondentForm $respondentForm): self
     {
-        if ($this->respondentAttempts->removeElement($respondentAttempt)) {
+        if ($this->respondentForms->removeElement($respondentForm)) {
             // set the owning side to null (unless already changed)
-            if ($respondentAttempt->getRespondent() === $this) {
-                $respondentAttempt->setRespondent(null);
+            if ($respondentForm->getRespondent() === $this) {
+                $respondentForm->setRespondent(null);
             }
         }
 

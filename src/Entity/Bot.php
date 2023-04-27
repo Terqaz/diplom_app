@@ -24,13 +24,13 @@ class Bot
     #[ORM\Column(options: ['default' => true])]
     private ?bool $isPrivate = true;
 
-    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: BotUser::class)]
+    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: BotUser::class, cascade: ['persist'])]
     private Collection $botUsers;
 
-    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: Survey::class)]
+    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: Survey::class, cascade: ['persist'])]
     private Collection $surveys;
 
-    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: SocialNetworkConnection::class)]
+    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: SocialNetworkConnection::class, cascade: ['persist'])]
     private Collection $socialNetworkConnections;
 
     public function __construct()
@@ -69,7 +69,7 @@ class Bot
         return $this;
     }
 
-    public function isIsPrivate(): ?bool
+    public function isPrivate(): ?bool
     {
         return $this->isPrivate;
     }

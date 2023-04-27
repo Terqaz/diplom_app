@@ -41,7 +41,7 @@ class SurveyIteration
         return $this;
     }
 
-    public function isIsSurveyChanged(): ?bool
+    public function isSurveyChanged(): ?bool
     {
         return $this->isSurveyChanged;
     }

@@ -6,15 +6,37 @@ use App\Repository\QuestionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
+
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: QuestionRepository::class)]
 class Question
 {
+    /** Выбрать один вариант */
+    public const CHOOSE_ONE = 'choose_one';
+    /** Выбрать число из диапазона */
+    public const CHOOSE_ONE_RANGED = 'choose_one_ranged';
+    /** Выбрать множество вариантов */
+    public const CHOOSE_MANY = 'choose_many';
+    /** Выбрать список вариантов */
+    public const CHOOSE_ORDERED = 'choose_ordered';
+
+    public const TYPES = [
+        self::CHOOSE_ONE,
+        self::CHOOSE_ONE_RANGED,
+        self::CHOOSE_MANY,
+        self::CHOOSE_ORDERED
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
+    #[ORM\Column(length: 32)]
+    #[Assert\Choice(choices: Question::TYPES)]
+    private ?string $type = null;
 
     #[ORM\Column(type: Types::SMALLINT)]
     private ?int $serialNumber = null;
@@ -22,12 +44,17 @@ class Question
     #[ORM\Column(length: 400, unique: true)]
     private ?string $title = null;
 
+    /**
+     * id-шники возможных ответов. Порядок   
+     */
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $correctAnswer = null;
 
-    // Если через запятую, то границы интервалов шкалы
-    // Если 2 числа через тире, то границы вводимого числа
-    // Границы всегда включаются в интервал
+    /**
+     * Если через запятую, то границы интервалов шкалы.
+     * Если 2 числа через тире, то границы вводимого числа.
+     * Границы всегда включаются в интервал
+     */
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $intervalBorders = null;
 
@@ -44,7 +71,7 @@ class Question
     #[ORM\JoinColumn(nullable: false)]
     private ?Survey $survey = null;
 
-    #[ORM\OneToMany(mappedBy: 'question', targetEntity: AnswerVariant::class)]
+    #[ORM\OneToMany(mappedBy: 'question', targetEntity: AnswerVariant::class, cascade: ['persist'])]
     private Collection $variants;
 
     #[ORM\OneToMany(mappedBy: 'question', targetEntity: RespondentAnswer::class)]
@@ -215,7 +242,7 @@ class Question
         return $this;
     }
 
-    public function isIsRequired(): ?bool
+    public function isRequired(): ?bool
     {
         return $this->isRequired;
     }
@@ -227,7 +254,7 @@ class Question
         return $this;
     }
 
-    public function isCanGiveOwnAnswer(): ?bool
+    public function canGiveOwnAnswer(): ?bool
     {
         return $this->canGiveOwnAnswer;
     }
@@ -247,6 +274,18 @@ class Question
     public function setMaxVariants(?int $maxVariants): self
     {
         $this->maxVariants = $maxVariants;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

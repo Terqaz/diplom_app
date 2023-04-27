@@ -2,29 +2,27 @@
 
 namespace App\Entity;
 
-use App\Repository\RespondentAttemptRepository;
+use App\Repository\RespondentFormRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: RespondentAttemptRepository::class)]
-class RespondentAttempt
+#[ORM\Entity(repositoryClass: RespondentFormRepository::class)]
+class RespondentForm
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    /** Дата отправки анкеты */
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $addingDate = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?float $testScore = null;
-
-    #[ORM\ManyToOne(inversedBy: 'respondentAttempts')]
+    #[ORM\ManyToOne(inversedBy: 'respondentForms')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Survey $survey = null;
 
-    #[ORM\ManyToOne(inversedBy: 'respondentAttempts')]
+    #[ORM\ManyToOne(inversedBy: 'respondentForms')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Respondent $respondent = null;
 
@@ -41,18 +39,6 @@ class RespondentAttempt
     public function setAddingDate(\DateTimeInterface $addingDate): self
     {
         $this->addingDate = $addingDate;
-
-        return $this;
-    }
-
-    public function getTestScore(): ?float
-    {
-        return $this->testScore;
-    }
-
-    public function setTestScore(?float $testScore): self
-    {
-        $this->testScore = $testScore;
 
         return $this;
     }

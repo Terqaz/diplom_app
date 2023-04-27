@@ -21,14 +21,14 @@ class Survey
     #[ORM\Column(length: 1024, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(options: ['default' => false])]
-    private ?bool $isTest = false;
-
-    #[ORM\Column(options: ['default' => false])]
-    private ?bool $isShuffleVariants = false;
-
     #[ORM\Column(options: ['default' => true])]
     private ?bool $isPrivate = true;
+
+    #[ORM\Column(options: ['default' => false])]
+    private ?bool $isEnabled = false;
+
+    #[ORM\Column(options: ['default' => false])]
+    private ?bool $isMultiple = false;
 
     #[ORM\Column(options: ['default' => false])]
     private ?bool $isPhoneRequired = false;
@@ -40,13 +40,13 @@ class Survey
     #[ORM\JoinColumn(nullable: true)]
     private ?Bot $bot = null;
 
-    #[ORM\OneToMany(mappedBy: 'survey', targetEntity: SurveyUser::class)]
+    #[ORM\OneToMany(mappedBy: 'survey', targetEntity: SurveyUser::class, cascade: ['persist'])]
     private Collection $surveyUsers;
 
-    #[ORM\OneToMany(mappedBy: 'survey', targetEntity: Question::class)]
+    #[ORM\OneToMany(mappedBy: 'survey', targetEntity: Question::class, cascade: ['persist'])]
     private Collection $questions;
 
-    #[ORM\OneToMany(mappedBy: 'survey', targetEntity: JumpCondition::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'survey', targetEntity: JumpCondition::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $jumpConditions;
 
     #[ORM\OneToMany(mappedBy: 'survey', targetEntity: SurveyIteration::class, orphanRemoval: true)]
@@ -55,10 +55,10 @@ class Survey
     #[ORM\OneToOne(mappedBy: 'survey', cascade: ['persist', 'remove'])]
     private ?Schedule $schedule = null;
 
-    #[ORM\OneToMany(mappedBy: 'survey', targetEntity: RespondentAttempt::class, orphanRemoval: true)]
-    private Collection $respondentAttempts;
+    #[ORM\OneToMany(mappedBy: 'survey', targetEntity: RespondentForm::class, orphanRemoval: true)]
+    private Collection $respondentForms;
 
-    #[ORM\OneToMany(mappedBy: 'survey', targetEntity: SurveyAccess::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'survey', targetEntity: SurveyAccess::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $surveyAccesses;
 
     public function __construct()
@@ -67,7 +67,7 @@ class Survey
         $this->surveyUsers = new ArrayCollection();
         $this->jumpConditions = new ArrayCollection();
         $this->surveyIterations = new ArrayCollection();
-        $this->respondentAttempts = new ArrayCollection();
+        $this->respondentForms = new ArrayCollection();
         $this->surveyAccesses = new ArrayCollection();
     }
 
@@ -100,7 +100,7 @@ class Survey
         return $this;
     }
 
-    public function isIsPrivate(): ?bool
+    public function isPrivate(): ?bool
     {
         return $this->isPrivate;
     }
@@ -201,30 +201,6 @@ class Survey
         return $this;
     }
 
-    public function isIsTest(): ?bool
-    {
-        return $this->isTest;
-    }
-
-    public function setIsTest(bool $isTest): self
-    {
-        $this->isTest = $isTest;
-
-        return $this;
-    }
-
-    public function isIsShuffleVariants(): ?bool
-    {
-        return $this->isShuffleVariants;
-    }
-
-    public function setIsShuffleVariants(bool $isShuffleVariants): self
-    {
-        $this->isShuffleVariants = $isShuffleVariants;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, JumpCondition>
      */
@@ -286,29 +262,29 @@ class Survey
     }
 
     /**
-     * @return Collection<int, RespondentAttempt>
+     * @return Collection<int, RespondentForm>
      */
-    public function getRespondentAttempts(): Collection
+    public function getRespondentForms(): Collection
     {
-        return $this->respondentAttempts;
+        return $this->respondentForms;
     }
 
-    public function addRespondentAttempt(RespondentAttempt $respondentAttempt): self
+    public function addRespondentForm(RespondentForm $respondentForm): self
     {
-        if (!$this->respondentAttempts->contains($respondentAttempt)) {
-            $this->respondentAttempts->add($respondentAttempt);
-            $respondentAttempt->setSurvey($this);
+        if (!$this->respondentForms->contains($respondentForm)) {
+            $this->respondentForms->add($respondentForm);
+            $respondentForm->setSurvey($this);
         }
 
         return $this;
     }
 
-    public function removeRespondentAttempt(RespondentAttempt $respondentAttempt): self
+    public function removeRespondentForm(RespondentForm $respondentForm): self
     {
-        if ($this->respondentAttempts->removeElement($respondentAttempt)) {
+        if ($this->respondentForms->removeElement($respondentForm)) {
             // set the owning side to null (unless already changed)
-            if ($respondentAttempt->getSurvey() === $this) {
-                $respondentAttempt->setSurvey(null);
+            if ($respondentForm->getSurvey() === $this) {
+                $respondentForm->setSurvey(null);
             }
         }
 
@@ -345,7 +321,7 @@ class Survey
         return $this;
     }
 
-    public function isIsPhoneRequired(): ?bool
+    public function isPhoneRequired(): ?bool
     {
         return $this->isPhoneRequired;
     }
@@ -357,7 +333,7 @@ class Survey
         return $this;
     }
 
-    public function isIsEmailRequired(): ?bool
+    public function isEmailRequired(): ?bool
     {
         return $this->isEmailRequired;
     }
@@ -365,6 +341,30 @@ class Survey
     public function setIsEmailRequired(bool $isEmailRequired): self
     {
         $this->isEmailRequired = $isEmailRequired;
+
+        return $this;
+    }
+
+    public function isEnabled(): ?bool
+    {
+        return $this->isEnabled;
+    }
+
+    public function setIsEnabled(bool $isEnabled): self
+    {
+        $this->isEnabled = $isEnabled;
+
+        return $this;
+    }
+
+    public function isMultiple(): ?bool
+    {
+        return $this->isMultiple;
+    }
+
+    public function setIsMultiple(bool $isMultiple): self
+    {
+        $this->isMultiple = $isMultiple;
 
         return $this;
     }

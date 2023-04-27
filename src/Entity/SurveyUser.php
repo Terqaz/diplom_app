@@ -4,12 +4,15 @@ namespace App\Entity;
 
 use App\Repository\SurveyUserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SurveyUserRepository::class)]
 class SurveyUser
 {
-    public const QUESTIONER = 'questioner'; // Анкетер
-    public const VIEWER = 'viewer'; // Просматривающий результаты
+    /** Анкетер */
+    public const QUESTIONER = 'questioner';
+    /** Просматривающий результаты */
+    public const VIEWER = 'viewer';
 
     public const ROLES = [
         self::QUESTIONER,
@@ -22,6 +25,7 @@ class SurveyUser
     private ?int $id = null;
 
     #[ORM\Column(length: 32)]
+    #[Assert\Choice(choices: SurveyUser::ROLES)]
     private ?string $role = null;
 
     #[ORM\ManyToOne(inversedBy: 'surveyUsers')]

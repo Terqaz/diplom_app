@@ -9,6 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: RespondentAnswerRepository::class)]
 class RespondentAnswer
 {
+    public const FIRST_SERIAL_NUMBER = 0;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -17,6 +19,7 @@ class RespondentAnswer
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $value = null;
 
+    /** Для указания порядка ответов */
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $serialNumber = null;
 
@@ -41,7 +44,7 @@ class RespondentAnswer
         return $this->value;
     }
 
-    public function setValue(string $value): self
+    public function setValue(?string $value): self
     {
         $this->value = $value;
 

@@ -45,7 +45,7 @@ class Question
     private ?string $title = null;
 
     /**
-     * id-шники возможных ответов. Порядок   
+     * id-шники необходимых выбираемых ответов через пробел
      */
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $correctAnswer = null;
@@ -61,9 +61,11 @@ class Question
     #[ORM\Column(options: ['default' => true])]
     private ?bool $isRequired = true;
 
-    #[ORM\Column(options: ['default' => false])]
-    private ?bool $canGiveOwnAnswer = false;
+    /** Максимальное число собственных ответов пользователя */
+    #[ORM\Column(type: Types::SMALLINT, options: ['default' => 0])]
+    private ?int $ownAnswersCount = 0;
 
+    /** Максимальное число выбираемых ответов. Если null, то нет ограничений */
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $maxVariants = null;
 
@@ -254,18 +256,6 @@ class Question
         return $this;
     }
 
-    public function canGiveOwnAnswer(): ?bool
-    {
-        return $this->canGiveOwnAnswer;
-    }
-
-    public function setCanGiveOwnAnswer(bool $canGiveOwnAnswer): self
-    {
-        $this->canGiveOwnAnswer = $canGiveOwnAnswer;
-
-        return $this;
-    }
-
     public function getMaxVariants(): ?int
     {
         return $this->maxVariants;
@@ -286,6 +276,18 @@ class Question
     public function setType(string $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getOwnAnswersCount(): int
+    {
+        return $this->ownAnswersCount;
+    }
+
+    public function setOwnAnswersCount(int $ownAnswersCount): self
+    {
+        $this->ownAnswersCount = $ownAnswersCount;
 
         return $this;
     }

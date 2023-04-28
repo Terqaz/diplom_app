@@ -14,9 +14,9 @@ class RespondentForm
     #[ORM\Column]
     private ?int $id = null;
 
-    /** Дата отправки анкеты */
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $addingDate = null;
+    /** Дата отправки анкеты. Если null, то анкета еще заполняется */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $sentDate = null;
 
     #[ORM\ManyToOne(inversedBy: 'respondentForms')]
     #[ORM\JoinColumn(nullable: false)]
@@ -31,14 +31,14 @@ class RespondentForm
         return $this->id;
     }
 
-    public function getAddingDate(): ?\DateTimeInterface
+    public function getSentDate(): ?\DateTimeInterface
     {
-        return $this->addingDate;
+        return $this->sentDate;
     }
 
-    public function setAddingDate(\DateTimeInterface $addingDate): self
+    public function setSentDate(\DateTimeInterface $sentDate): self
     {
-        $this->addingDate = $addingDate;
+        $this->sentDate = $sentDate;
 
         return $this;
     }

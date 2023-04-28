@@ -57,27 +57,24 @@ class FixturesData
             'questions' => [
                 0 => [
                     'type' => Question::CHOOSE_ONE,
-                    'canGiveOwnAnswer' => true,
+                    'ownAnswersCount' => 1,
                     'serialNumber' => 1,
                     'title' => 'Напишите вашу фамилию',
                 ],
                 1 => [
                     'type' => Question::CHOOSE_ONE,
-                    'canGiveOwnAnswer' => false,
                     'serialNumber' => 2,
                     'title' => 'Выберите ваш факультет',
                     'variants' => ['ФАИ', 'ИМиТ', 'МИ', 'ИСНЭП', 'ИСФ', 'ФТФ', 'ЗФ', 'ФДО', 'УК', 'НИИ']
                 ],
                 2 => [
                     'type' => Question::CHOOSE_ONE_RANGED,
-                    'canGiveOwnAnswer' => false,
                     'serialNumber' => 3,
                     'title' => 'Введите номер курса',
                     'intervalBorders' => '1-6',
                 ],
                 3 => [
                     'type' => Question::CHOOSE_MANY,
-                    'canGiveOwnAnswer' => false,
                     'serialNumber' => 4,
                     'title' => 'Перечислите корпуса, в которых вы чаще всего бываете',
                     'variants' => ['1', '2', '3', '4', '5', '9', 'Административный', 'Аудиторный', 'Спортивный комплекс'],
@@ -85,14 +82,12 @@ class FixturesData
                 ],
                 4 => [
                     'type' => Question::CHOOSE_ONE,
-                    'canGiveOwnAnswer' => false,
                     'serialNumber' => 5,
                     'title' => 'Как часто бывают заняты лавочки в указанных вами корпусах?',
                     'variants' => ['Никогда', 'Иногда', 'Редко', 'Часто', 'Всегда'],
                 ],
                 5 => [
                     'type' => Question::CHOOSE_ONE,
-                    'canGiveOwnAnswer' => false,
                     'serialNumber' => 6,
                     'title' => 'Как вы считаете, нужно ли установить в данных корпусах больше лавочек?',
                     'variants' => ['Нет', 'Не знаю', 'Да'],

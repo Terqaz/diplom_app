@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\BotRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BotRepository::class)]
@@ -30,14 +31,36 @@ class Bot
     #[ORM\OneToMany(mappedBy: 'bot', targetEntity: Survey::class, cascade: ['persist'])]
     private Collection $surveys;
 
-    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: SocialNetworkConnection::class, cascade: ['persist'])]
-    private Collection $socialNetworkConnections;
+    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: SocialNetwork::class, cascade: ['persist'])]
+    private Collection $socialNetworks;
 
     public function __construct()
     {
         $this->botUsers = new ArrayCollection();
         $this->surveys = new ArrayCollection();
-        $this->socialNetworkConnections = new ArrayCollection();
+        $this->socialNetworks = new ArrayCollection();
+    }
+
+    public function getTelegramNetwork(): SocialNetwork
+    {
+        return $this->getSocialNetwork(SocialNetwork::TELEGRAM_CODE);
+    }
+
+    public function getVkontakteNetwork(): SocialNetwork
+    {
+        return $this->getSocialNetwork(SocialNetwork::VKONTAKTE_CODE);
+    }
+
+    public function getSocialNetwork(string $code): SocialNetwork
+    {
+        /** @var ArrayCollection */
+        $networks = $this->socialNetworks;
+
+        return $networks->matching(
+            Criteria::create()
+                ->where(Criteria::expr()->eq('code', $code))
+                ->setMaxResults(1)
+        )->get(0);
     }
 
     public function getId(): ?int
@@ -142,29 +165,29 @@ class Bot
     }
 
     /**
-     * @return Collection<int, SocialNetworkConnection>
+     * @return Collection<int, SocialNetwork>
      */
-    public function getSocialNetworkConnections(): Collection
+    public function getSocialNetworks(): Collection
     {
-        return $this->socialNetworkConnections;
+        return $this->socialNetworks;
     }
 
-    public function addSocialNetworkConnection(SocialNetworkConnection $socialNetworkConnection): self
+    public function addSocialNetwork(SocialNetwork $socialNetwork): self
     {
-        if (!$this->socialNetworkConnections->contains($socialNetworkConnection)) {
-            $this->socialNetworkConnections->add($socialNetworkConnection);
-            $socialNetworkConnection->setBot($this);
+        if (!$this->socialNetworks->contains($socialNetwork)) {
+            $this->socialNetworks->add($socialNetwork);
+            $socialNetwork->setBot($this);
         }
 
         return $this;
     }
 
-    public function removeSocialNetworkConnection(SocialNetworkConnection $socialNetworkConnection): self
+    public function removeSocialNetwork(SocialNetwork $socialNetwork): self
     {
-        if ($this->socialNetworkConnections->removeElement($socialNetworkConnection)) {
+        if ($this->socialNetworks->removeElement($socialNetwork)) {
             // set the owning side to null (unless already changed)
-            if ($socialNetworkConnection->getBot() === $this) {
-                $socialNetworkConnection->setBot(null);
+            if ($socialNetwork->getBot() === $this) {
+                $socialNetwork->setBot(null);
             }
         }
 

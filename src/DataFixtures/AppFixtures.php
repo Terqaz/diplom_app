@@ -79,27 +79,60 @@ class AppFixtures extends Fixture
             ]);
         }
 
-        // TODO разобраться насчет приватности
+        // ADMIN > QUESTIONER > VIEWER > AUTHORIZED > ANONYM
+
+        // Независимо от приватности (бота или опроса):
+        //   - CU - нужны права ADMIN для бота и хотя бы QUESTIONER для опроса
+        //   - D (только опрос) - нужны права ADMIN
+
+        // 1. Если приватный (бот или опрос):
+        //   - R - нужны права VIEWER
+        // 2. Если публичный:
+        //   - R - любые пользователи
+        
+        // В публичном боте возможен R:
+        // 1. Для ANONYM:
+        //   - Основной информации
+        //   - Список только публичных опросов
+        // 2. Для VIEWER:
+        //   - Список всех опросов
+
+        // В публичном опросе возможен R:
+        // 1. Для ANONYM:
+        //   - Основной информации
+        //   - Заполненные анкеты (без фильтров) файлом
+        // 2. Для VIEWER:
+        //   - Заполненные анкеты (с фильтрами)
+        //   - Статистика
+        //   - Вопросы
+
         // Создаем опросы
 
-        $privateBotsSurveys = $this->createSurveysInBots($privateBots, botSurveyUsersData: [
+        $surveyUsersData = [
             ['user' => $users[0], 'role' => SurveyUser::QUESTIONER],
             ['user' => $users[1], 'role' => SurveyUser::QUESTIONER],
             ['user' => $users[2], 'role' => SurveyUser::VIEWER],
             ['user' => $users[3], 'role' => SurveyUser::VIEWER],
-        ], surveysIsPrivate: true);
-
-        $privateSurveyUsersData = [
-            ['user' => $users[0], 'role' => SurveyUser::QUESTIONER],
-            ['user' => $users[1], 'role' => SurveyUser::QUESTIONER],
         ];
 
-        $publicBotsSurveys = $this->createSurveysInBots($publicBots, $privateSurveyUsersData, surveysIsPrivate: false);
+        /** isBotPrivate => isSurveyPrivate => Surveys[] */
+        $surveys = [
+            true => [
+                true => $this->createSurveysInBots($privateBots, $surveyUsersData, true),
+                false => $this->createSurveysInBots($privateBots, $surveyUsersData, false)
+            ],
+            false => [
+                true => $this->createSurveysInBots($publicBots, $surveyUsersData, true),
+                false => $this->createSurveysInBots($publicBots, $surveyUsersData, false)
+            ],
+        ];
 
         // Добавляем ответы на опросы
 
-        $this->addAnswersToSurveys($privateBotsSurveys, array_slice($respondents, 0, 3));
-        $this->addAnswersToSurveys($publicBotsSurveys, array_slice($respondents, 0, 3));
+        $this->addAnswersToSurveys($surveys[true][true], array_slice($respondents, 0, 3));
+        $this->addAnswersToSurveys($surveys[true][false], array_slice($respondents, 0, 3));
+        $this->addAnswersToSurveys($surveys[false][true], array_slice($respondents, 0, 3));
+        $this->addAnswersToSurveys($surveys[false][false], array_slice($respondents, 0, 3));
 
         // Сохраняем данные
 
@@ -232,7 +265,7 @@ class AppFixtures extends Fixture
     {
         $question = (new Question())
             ->setType($questionData['type'])
-            ->setCanGiveOwnAnswer($questionData['canGiveOwnAnswer'])
+            ->setOwnAnswersCount($questionData['ownAnswersCount'])
             ->setSerialNumber($questionData['serialNumber'])
             ->setTitle($questionData['title']);
 

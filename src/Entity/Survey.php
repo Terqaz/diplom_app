@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\SurveyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SurveyRepository::class)]
@@ -27,6 +28,7 @@ class Survey
     #[ORM\Column(options: ['default' => false])]
     private ?bool $isEnabled = false;
 
+    /** Можно ли проходить несколько раз */
     #[ORM\Column(options: ['default' => false])]
     private ?bool $isMultiple = false;
 
@@ -52,9 +54,11 @@ class Survey
     #[ORM\OneToMany(mappedBy: 'survey', targetEntity: SurveyIteration::class, orphanRemoval: true)]
     private Collection $surveyIterations;
 
+    /** Не имеет смысл, если isMultiple=true */
     #[ORM\OneToOne(mappedBy: 'survey', cascade: ['persist', 'remove'])]
     private ?Schedule $schedule = null;
 
+    /** Не имеет смысл, если isMultiple=false и schedule=null*/
     #[ORM\OneToMany(mappedBy: 'survey', targetEntity: RespondentForm::class, orphanRemoval: true)]
     private Collection $respondentForms;
 
@@ -350,6 +354,8 @@ class Survey
         return $this->isEnabled;
     }
 
+    // todo
+    /** Если переданный isEnabled = false и есть RespondentForm, у которой sendDate !== null, то опрос нельзя просто так редактировать */
     public function setIsEnabled(bool $isEnabled): self
     {
         $this->isEnabled = $isEnabled;

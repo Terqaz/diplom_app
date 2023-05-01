@@ -195,7 +195,7 @@ class AppFixtures extends Fixture
         $user->setPassword(
             $this->userPasswordHasher->hashPassword(
                 $user,
-                'password' . $i
+                'password'
             )
         );
         return $user;
@@ -293,7 +293,7 @@ class AppFixtures extends Fixture
         foreach ($surveys as $si => $survey) {
             foreach ($respondents as $ri => $respondent) {
                 $form = (new RespondentForm())
-                    ->setAddingDate($date);
+                    ->setSentDate($date);
 
                 $respondent->addRespondentForm($form);
                 $survey->addRespondentForm($form);

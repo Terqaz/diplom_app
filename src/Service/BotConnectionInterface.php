@@ -1,19 +1,22 @@
 <?php
 
-namespace Service;
+namespace App\Service;
 
+use App\Entity\Bot;
 use Longman\TelegramBot\Telegram;
 use VK\Client\VKApiClient;
 
 interface BotConnectionInterface
 {
-    /** Получение обновлений через метод */
-    public const USING_METHOD = 0;
-    
-    /** Получение обновлений через вебхук */
-    public const USING_WEBHOOK = 1;
+    public function __construct(Bot $bot, int $getUpdatesWay);
 
-    public function getApi(): Telegram|VKApiClient;
+    public function startListening(): void;
+    public function stopListening(): void;
+    public function isListening(): bool;
+
+    public function getBot(): Bot;
+
+    public function getClient(): Telegram|VKApiClient;
 
     public static function getAllowedUpdates(): array;
 }

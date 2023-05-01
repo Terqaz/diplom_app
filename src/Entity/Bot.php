@@ -41,17 +41,17 @@ class Bot
         $this->socialNetworks = new ArrayCollection();
     }
 
-    public function getTelegramNetwork(): SocialNetwork
+    public function getTelegram(): SocialNetwork
     {
-        return $this->getSocialNetwork(SocialNetwork::TELEGRAM_CODE);
+        return $this->getSocialNetworkByCode(SocialNetwork::TELEGRAM_CODE);
     }
 
-    public function getVkontakteNetwork(): SocialNetwork
+    public function getVkontakte(): SocialNetwork
     {
-        return $this->getSocialNetwork(SocialNetwork::VKONTAKTE_CODE);
+        return $this->getSocialNetworkByCode(SocialNetwork::VKONTAKTE_CODE);
     }
 
-    public function getSocialNetwork(string $code): SocialNetwork
+    public function getSocialNetworkByCode(string $code): SocialNetwork
     {
         /** @var ArrayCollection */
         $networks = $this->socialNetworks;

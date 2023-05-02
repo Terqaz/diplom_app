@@ -17,12 +17,6 @@ class SocialNetwork
         self::VKONTAKTE_CODE,
     ];
 
-    /** Получение обновлений через метод */
-    public const METHOD_UPDATES = 0;
-
-    /** Получение обновлений через вебхук */
-    public const WEBHOOK_UPDATES = 1;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

@@ -2,7 +2,9 @@
 
 namespace App\Entity;
 
+use App\Enum\AccessProperty;
 use App\Repository\BotRepository;
+use App\Utils\StringUtils;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -34,11 +36,47 @@ class Bot
     #[ORM\OneToMany(mappedBy: 'bot', targetEntity: SocialNetwork::class, cascade: ['persist'])]
     private Collection $socialNetworks;
 
+    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: BotAccess::class, orphanRemoval: true, cascade: ['persist'])]
+    private Collection $respondentAccesses;
+
     public function __construct()
     {
         $this->botUsers = new ArrayCollection();
         $this->surveys = new ArrayCollection();
         $this->socialNetworks = new ArrayCollection();
+        $this->respondentAccesses = new ArrayCollection();
+    }
+
+    public function getRespondentAccess(Respondent $respondent): ?BotAccess
+    {
+        // Сначала пытаемся найти существующий доступ
+
+        /** @var ArrayCollection $accesses */
+        $accesses = $this->respondentAccesses;
+
+        $criteria = Criteria::create();
+
+        foreach (AccessProperty::TYPES as $property) {
+            $getter = 'get' . StringUtils::capitalize($property);
+            $criteria->orWhere(Criteria::expr()->eq($property, $respondent->$getter));
+        }
+        $access = $accesses->matching($criteria)->get(0);
+
+        // Если бот не приватный, то доступ всегда есть
+        if (null === $access && !$this->isPrivate) {
+            // Привязываем пользователя к боту и тем самым показываем, что он пользовался ботом
+            $access = (new BotAccess())
+                ->setRespondent($respondent)
+                ->setBot($this);
+
+            $this->addBotAccess($access);
+        }
+
+        return $access;
+    }
+
+    public function isConnectedToBot(Bot $bot): bool
+    {
     }
 
     public function getTelegram(): SocialNetwork
@@ -188,6 +226,36 @@ class Bot
             // set the owning side to null (unless already changed)
             if ($socialNetwork->getBot() === $this) {
                 $socialNetwork->setBot(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, BotAccess>
+     */
+    public function getRespondentAccesses(): Collection
+    {
+        return $this->respondentAccesses;
+    }
+
+    public function addBotAccess(BotAccess $botAccess): self
+    {
+        if (!$this->respondentAccesses->contains($botAccess)) {
+            $this->respondentAccesses->add($botAccess);
+            $botAccess->setBot($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBotAccess(BotAccess $botAccess): self
+    {
+        if ($this->respondentAccesses->removeElement($botAccess)) {
+            // set the owning side to null (unless already changed)
+            if ($botAccess->getBot() === $this) {
+                $botAccess->setBot(null);
             }
         }
 

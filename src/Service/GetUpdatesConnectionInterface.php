@@ -3,12 +3,12 @@
 namespace App\Service;
 
 use App\Entity\Bot;
-use Longman\TelegramBot\Telegram;
+use TelegramBot\Api\BotApi;
 use VK\Client\VKApiClient;
 
-interface BotConnectionInterface
+interface GetUpdatesConnectionInterface
 {
-    public function __construct(Bot $bot, int $getUpdatesWay);
+    public function __construct(Bot $bot);
 
     public function startListening(): void;
     public function stopListening(): void;
@@ -16,7 +16,7 @@ interface BotConnectionInterface
 
     public function getBot(): Bot;
 
-    public function getClient(): Telegram|VKApiClient;
+    public function getClient(): BotApi|VKApiClient;
 
     public static function getAllowedUpdates(): array;
 }

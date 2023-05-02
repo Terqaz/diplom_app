@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\RespondentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RespondentRepository::class)]
@@ -33,14 +34,18 @@ class Respondent
     #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: RespondentForm::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $respondentForms;
 
-    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: SurveyAccess::class, orphanRemoval: true, cascade: ['persist'])]
+    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: SurveyAccess::class)]
     private Collection $surveyAccesses;
+
+    #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: BotAccess::class)]
+    private Collection $botAccesses;
 
     public function __construct()
     {
         $this->surveyAccesses = new ArrayCollection();
         $this->respondentAnswers = new ArrayCollection();
         $this->respondentForms = new ArrayCollection();
+        $this->botAccesses = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -180,6 +185,36 @@ class Respondent
             // set the owning side to null (unless already changed)
             if ($surveyAccess->getRespondent() === $this) {
                 $surveyAccess->setRespondent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, BotAccess>
+     */
+    public function getBotAccesses(): Collection
+    {
+        return $this->botAccesses;
+    }
+
+    public function addBotAccess(BotAccess $botAccess): self
+    {
+        if (!$this->botAccesses->contains($botAccess)) {
+            $this->botAccesses->add($botAccess);
+            $botAccess->setRespondent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBotAccess(BotAccess $botAccess): self
+    {
+        if ($this->botAccesses->removeElement($botAccess)) {
+            // set the owning side to null (unless already changed)
+            if ($botAccess->getRespondent() === $this) {
+                $botAccess->setRespondent(null);
             }
         }
 

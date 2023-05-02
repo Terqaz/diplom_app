@@ -4,22 +4,23 @@ namespace App\Service;
 
 use App\Entity\Bot;
 use App\Entity\SocialNetwork;
+use App\Enum\FetchWay;
 use App\Repository\BotRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
-class ConnectionsManager
+class GetUpdatesManager
 {
     private const CONNECTION_CLASSES = [
-        SocialNetwork::TELEGRAM_CODE => TelegramConnection::class,
-        SocialNetwork::VKONTAKTE_CODE => VkontakteConnection::class,
+        SocialNetwork::TELEGRAM_CODE => TelegramGetUpdatesConnection::class,
+        SocialNetwork::VKONTAKTE_CODE => VkontakteGetUpdatesConnection::class,
     ];
 
     private EntityManagerInterface $em;
 
     /**
-     * [...socialNetworkId => BotConnectionInterface]
+     * [...socialNetworkId => GetUpdatesConnectionInterface]
      * 
-     * @var array<int, BotConnectionInterface>
+     * @var array<int, GetUpdatesConnectionInterface>
      */
     private array $connections;
 
@@ -46,8 +47,8 @@ class ConnectionsManager
     {
         $class = self::CONNECTION_CLASSES[$network];
 
-        /** @var BotConnectionInterface $connection */
-        $connection = (new $class($bot, SocialNetwork::METHOD_UPDATES));
+        /** @var GetUpdatesConnectionInterface $connection */
+        $connection = (new $class($bot));
         $this->connections[$network->getId()] = $connection;
 
         $connection->startListening();

@@ -3,31 +3,34 @@
 namespace App\Entity;
 
 use App\Enum\AccessProperty;
-use App\Repository\SurveyAccessRepository;
+use App\Repository\BotAccessRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: SurveyAccessRepository::class)]
-class SurveyAccess
+#[ORM\Entity(repositoryClass: BotAccessRepository::class)]
+class BotAccess
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 32)]
-    #[Assert\Choice(choices: AccessProperty::TYPES)]
+    #[ORM\Column(length: 32, nullable: true)]
+    #[Assert\AtLeastOneOf([
+        new Assert\IsNull(),
+        new Assert\Choice(choices: AccessProperty::TYPES),
+    ])]
     private ?string $propertyName = null;
 
-    #[ORM\Column(length: 128)]
+    #[ORM\Column(length: 128, nullable: true)]
     private ?string $propertyValue = null;
 
-    #[ORM\ManyToOne(inversedBy: 'surveyAccesses')]
+    #[ORM\ManyToOne(inversedBy: 'botAccesses')]
     private ?Respondent $respondent = null;
 
-    #[ORM\ManyToOne(inversedBy: 'surveyAccesses')]
+    #[ORM\ManyToOne(inversedBy: 'botAccesses')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Survey $survey = null;
+    private ?Bot $bot = null;
 
     public function getId(): ?int
     {
@@ -46,6 +49,18 @@ class SurveyAccess
         return $this;
     }
 
+    public function getBot(): ?Bot
+    {
+        return $this->bot;
+    }
+
+    public function setBot(?Bot $bot): self
+    {
+        $this->bot = $bot;
+
+        return $this;
+    }
+
     public function getRespondent(): ?Respondent
     {
         return $this->respondent;
@@ -54,18 +69,6 @@ class SurveyAccess
     public function setRespondent(?Respondent $respondent): self
     {
         $this->respondent = $respondent;
-
-        return $this;
-    }
-
-    public function getSurvey(): ?Survey
-    {
-        return $this->survey;
-    }
-
-    public function setSurvey(?Survey $survey): self
-    {
-        $this->survey = $survey;
 
         return $this;
     }

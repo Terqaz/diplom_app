@@ -63,7 +63,7 @@ class Survey
     private Collection $respondentForms;
 
     #[ORM\OneToMany(mappedBy: 'survey', targetEntity: SurveyAccess::class, orphanRemoval: true, cascade: ['persist'])]
-    private Collection $surveyAccesses;
+    private Collection $respondentAccesses;
 
     public function __construct()
     {
@@ -72,7 +72,7 @@ class Survey
         $this->jumpConditions = new ArrayCollection();
         $this->surveyIterations = new ArrayCollection();
         $this->respondentForms = new ArrayCollection();
-        $this->surveyAccesses = new ArrayCollection();
+        $this->respondentAccesses = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -298,15 +298,15 @@ class Survey
     /**
      * @return Collection<int, SurveyAccess>
      */
-    public function getSurveyAccesses(): Collection
+    public function getRespondentAccesses(): Collection
     {
-        return $this->surveyAccesses;
+        return $this->respondentAccesses;
     }
 
     public function addSurveyAccess(SurveyAccess $surveyAccess): self
     {
-        if (!$this->surveyAccesses->contains($surveyAccess)) {
-            $this->surveyAccesses->add($surveyAccess);
+        if (!$this->respondentAccesses->contains($surveyAccess)) {
+            $this->respondentAccesses->add($surveyAccess);
             $surveyAccess->setSurvey($this);
         }
 
@@ -315,7 +315,7 @@ class Survey
 
     public function removeSurveyAccess(SurveyAccess $surveyAccess): self
     {
-        if ($this->surveyAccesses->removeElement($surveyAccess)) {
+        if ($this->respondentAccesses->removeElement($surveyAccess)) {
             // set the owning side to null (unless already changed)
             if ($surveyAccess->getSurvey() === $this) {
                 $surveyAccess->setSurvey(null);

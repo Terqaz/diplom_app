@@ -33,8 +33,8 @@ class Bot
     #[ORM\OneToMany(mappedBy: 'bot', targetEntity: Survey::class, cascade: ['persist'])]
     private Collection $surveys;
 
-    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: SocialNetwork::class, cascade: ['persist'])]
-    private Collection $socialNetworks;
+    #[ORM\OneToMany(mappedBy: 'bot', targetEntity: SocialNetworkConfig::class, cascade: ['persist'])]
+    private Collection $socialNetworkConfigs;
 
     #[ORM\OneToMany(mappedBy: 'bot', targetEntity: BotAccess::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $respondentAccesses;
@@ -43,7 +43,7 @@ class Bot
     {
         $this->botUsers = new ArrayCollection();
         $this->surveys = new ArrayCollection();
-        $this->socialNetworks = new ArrayCollection();
+        $this->socialNetworkConfigs = new ArrayCollection();
         $this->respondentAccesses = new ArrayCollection();
     }
 
@@ -75,24 +75,20 @@ class Bot
         return $access;
     }
 
-    public function isConnectedToBot(Bot $bot): bool
+    public function getTelegram(): SocialNetworkConfig
     {
+        return $this->getSocialNetworkConfigByCode(SocialNetworkConfig::TELEGRAM_CODE);
     }
 
-    public function getTelegram(): SocialNetwork
+    public function getVkontakte(): SocialNetworkConfig
     {
-        return $this->getSocialNetworkByCode(SocialNetwork::TELEGRAM_CODE);
+        return $this->getSocialNetworkConfigByCode(SocialNetworkConfig::VKONTAKTE_CODE);
     }
 
-    public function getVkontakte(): SocialNetwork
-    {
-        return $this->getSocialNetworkByCode(SocialNetwork::VKONTAKTE_CODE);
-    }
-
-    public function getSocialNetworkByCode(string $code): SocialNetwork
+    public function getSocialNetworkConfigByCode(string $code): SocialNetworkConfig
     {
         /** @var ArrayCollection */
-        $networks = $this->socialNetworks;
+        $networks = $this->socialNetworkConfigs;
 
         return $networks->matching(
             Criteria::create()
@@ -203,29 +199,29 @@ class Bot
     }
 
     /**
-     * @return Collection<int, SocialNetwork>
+     * @return Collection<int, SocialNetworkConfig>
      */
-    public function getSocialNetworks(): Collection
+    public function getSocialNetworkConfigs(): Collection
     {
-        return $this->socialNetworks;
+        return $this->socialNetworkConfigs;
     }
 
-    public function addSocialNetwork(SocialNetwork $socialNetwork): self
+    public function addSocialNetworkConfig(SocialNetworkConfig $socialNetworkConfig): self
     {
-        if (!$this->socialNetworks->contains($socialNetwork)) {
-            $this->socialNetworks->add($socialNetwork);
-            $socialNetwork->setBot($this);
+        if (!$this->socialNetworkConfigs->contains($socialNetworkConfig)) {
+            $this->socialNetworkConfigs->add($socialNetworkConfig);
+            $socialNetworkConfig->setBot($this);
         }
 
         return $this;
     }
 
-    public function removeSocialNetwork(SocialNetwork $socialNetwork): self
+    public function removeSocialNetworkConfig(SocialNetworkConfig $socialNetworkConfig): self
     {
-        if ($this->socialNetworks->removeElement($socialNetwork)) {
+        if ($this->socialNetworkConfigs->removeElement($socialNetworkConfig)) {
             // set the owning side to null (unless already changed)
-            if ($socialNetwork->getBot() === $this) {
-                $socialNetwork->setBot(null);
+            if ($socialNetworkConfig->getBot() === $this) {
+                $socialNetworkConfig->setBot(null);
             }
         }
 

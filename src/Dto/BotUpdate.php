@@ -2,19 +2,21 @@
 
 namespace App\Dto;
 
-use App\Entity\SocialNetwork;
+use App\Entity\SocialNetworkConfig;
 use LogicException;
 use TelegramBot\Api\Types\Update;
 
 class BotUpdate
 {
-    private string $socialNetwork;
-    private int|string $userId;
+    private string $socialNetworkCode;
+    private int|string $chatId;
     private string $messageText;
 
-    protected function __construct(string $socialNetwork, int|string $userId, string $messageText) {
-        $this->socialNetwork = $socialNetwork;
-        $this->userId = $userId;
+    private int $botId;
+
+    protected function __construct(string $socialNetworkCode, int|string $chatId, string $messageText) {
+        $this->socialNetworkCode = $socialNetworkCode;
+        $this->chatId = $chatId;
         $this->messageText = $messageText;
     }
 
@@ -27,19 +29,36 @@ class BotUpdate
         $message = $update->getMessage();
 
         return new self(
-            SocialNetwork::TELEGRAM_CODE,
+            SocialNetworkConfig::TELEGRAM_CODE,
             $message->getChat()->getId(),
             $message->getText()
         );
     }
 
+    public function getSocialNetworkCode(): string
+    {
+        return $this->socialNetworkCode;
+    }
+
     public function getChatId(): int|string
     {
-        return $this->userId;
+        return $this->chatId;
     }
 
     public function getMessageText(): string
     {
         return $this->messageText;
+    }
+
+    public function getBotId(): int
+    {
+        return $this->botId;
+    }
+
+    public function setBotId(int $botId): self
+    {
+        $this->botId = $botId;
+
+        return $this;
     }
 }

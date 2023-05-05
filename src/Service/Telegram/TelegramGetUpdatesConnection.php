@@ -5,12 +5,12 @@ namespace App\Service\Telegram;
 use App\Entity\Bot;
 use App\Enum\FetchWay;
 use App\Service\GetUpdatesConnectionInterface;
-use TelegramBot\Api\BotApi;
+use TelegramBot\Api\BotClient;
 
 class TelegramGetUpdatesConnection implements GetUpdatesConnectionInterface
 {
     private Bot $bot;
-    private BotApi $client;
+    private BotClient $client;
 
     private bool $isListening;
 
@@ -18,7 +18,7 @@ class TelegramGetUpdatesConnection implements GetUpdatesConnectionInterface
     {
         $this->bot = $bot;
 
-        $this->client = new BotApi($bot->getTelegram()->getAccessToken());
+        $this->client = new BotClient($bot->getTelegram()->getAccessToken());
     }
 
     public function startListening(): void
@@ -50,7 +50,7 @@ class TelegramGetUpdatesConnection implements GetUpdatesConnectionInterface
         return $this->bot;
     }
 
-    public function getClient(): BotApi
+    public function getClient(): BotClient
     {
         return $this->client;
     }
@@ -58,7 +58,7 @@ class TelegramGetUpdatesConnection implements GetUpdatesConnectionInterface
     public static function getAllowedUpdates(): array
     {
         return [
-            Update::TYPE_MESSAGE,
+            "message"
             // TODO
             // Update::TYPE_CALLBACK_QUERY
         ];

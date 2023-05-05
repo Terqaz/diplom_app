@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Bot;
-use TelegramBot\Api\BotApi;
+use TelegramBot\Api\BotClient;
 use VK\Client\VKApiClient;
 
 interface GetUpdatesConnectionInterface
@@ -16,7 +16,7 @@ interface GetUpdatesConnectionInterface
 
     public function getBot(): Bot;
 
-    public function getClient(): BotApi|VKApiClient;
+    public function getClient(): BotClient|VKApiClient;
 
     public static function getAllowedUpdates(): array;
 }

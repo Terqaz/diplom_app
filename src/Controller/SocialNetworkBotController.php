@@ -2,13 +2,13 @@
 
 namespace App\Controller;
 
-use App\Entity\SocialNetwork;
+use App\Entity\SocialNetworkConfig;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class SocialNetworkBotController extends AbstractController
+class SocialNetworkConfigBotController extends AbstractController
 {
     private EntityManagerInterface $em;
 
@@ -24,7 +24,7 @@ class SocialNetworkBotController extends AbstractController
     )]
     public function handleWebhooks(string $connectionPath): Response
     {
-        $connection = $this->em->getRepository(SocialNetwork::class)
+        $connection = $this->em->getRepository(SocialNetworkConfig::class)
             ->findOneBy(['webhookUrl' => '/webhook/' . $connectionPath]);
 
         if (null === $connection) {

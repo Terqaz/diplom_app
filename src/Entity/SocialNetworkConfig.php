@@ -2,12 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\SocialNetworkRepository;
+use App\Repository\SocialNetworkConfigRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: SocialNetworkRepository::class)]
-class SocialNetwork
+#[ORM\Entity(repositoryClass: SocialNetworkConfigRepository::class)]
+class SocialNetworkConfig
 {
     public const TELEGRAM_CODE = 'tg';
     public const VKONTAKTE_CODE = 'vk';
@@ -24,7 +24,7 @@ class SocialNetwork
 
     /** Код соц сети */
     #[ORM\Column(length: 32)]
-    #[Assert\Choice(choices: SocialNetwork::CODES)]
+    #[Assert\Choice(choices: SocialNetworkConfig::CODES)]
     private ?string $code = null;
 
     /**
@@ -34,13 +34,17 @@ class SocialNetwork
     #[ORM\Column(length: 32)]
     private ?string $connectionId = null;
 
+    // TODO
+    // 1871965994:AAFDTvdixnVqXTn-_d0UWp8GPW_O2D7b-mU
+    // 088110c08bec03540876c1f0c15cc8f5bc2934fe2fee055941d1c88487ac848151f1f65c65c89592fd45d
+
     #[ORM\Column(length: 255)]
     private ?string $accessToken = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $webhookUrlPath = null;
 
-    #[ORM\ManyToOne(inversedBy: 'socialNetworks')]
+    #[ORM\ManyToOne(inversedBy: 'socialNetworkConfigs')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Bot $bot = null;
 

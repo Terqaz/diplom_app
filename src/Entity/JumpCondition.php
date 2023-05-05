@@ -16,6 +16,7 @@ class JumpCondition
     #[ORM\Column]
     private ?int $id = null;
 
+    /** Порядковый номер среди всех ответов и условий перехода */
     #[ORM\Column(type: Types::SMALLINT)]
     private ?int $serialNumber = null;
 
@@ -27,7 +28,7 @@ class JumpCondition
     #[ORM\JoinColumn(nullable: false)]
     private ?Question $toQuestion = null;
 
-    #[ORM\OneToMany(mappedBy: 'jumpCondition', targetEntity: Subcondition::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'jumpCondition', targetEntity: Subcondition::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $subconditions;
 
     public function __construct()

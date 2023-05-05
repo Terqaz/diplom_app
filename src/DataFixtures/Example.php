@@ -17,6 +17,9 @@ use Exception;
 use RuntimeException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
+/**
+ * @deprecated
+ */
 class Example
 {
     private UserPasswordHasherInterface $userPasswordHasher;

@@ -3,12 +3,11 @@
 namespace App\Service\Vk;
 
 use App\Entity\Bot;
-use App\Enum\FetchWay;
 use App\Service\GetUpdatesConnectionInterface;
 use VK\CallbackApi\LongPoll\VKCallbackApiLongPollExecutor;
 use VK\Client\VKApiClient;
 
-class VkontakteGetUpdatesConnection implements GetUpdatesConnectionInterface
+class VkGetUpdatesConnection implements GetUpdatesConnectionInterface
 {
     private Bot $bot;
     private VKApiClient $client;
@@ -21,8 +20,6 @@ class VkontakteGetUpdatesConnection implements GetUpdatesConnectionInterface
 
         $this->client = new VKApiClient();
     }
-
-    //088110c08bec03540876c1f0c15cc8f5bc2934fe2fee055941d1c88487ac848151f1f65c65c89592fd45d
 
     public function startListening(): void
     {

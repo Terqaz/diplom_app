@@ -86,10 +86,10 @@ class SurveyService
         $this->telegramCache->save($cacheItem);
     }
 
-    public function processShowBot(RespondentStateData $data): RespondentStateData
-    {
-         // TODO как обобщенно делать запросы к соц сети
-    }
+    // public function processShowBot(RespondentStateData $data): RespondentStateData
+    // {
+    //      // TODO как обобщенно делать запросы к соц сети
+    // }
 
     // public function processShowBotDescription(RespondentStateData $data): RespondentStateData
     // {

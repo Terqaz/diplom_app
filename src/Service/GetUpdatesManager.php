@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Bot;
-use App\Entity\SocialNetwork;
+use App\Entity\SocialNetworkConfig;
 use App\Enum\FetchWay;
 use App\Repository\BotRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,14 +11,14 @@ use Doctrine\ORM\EntityManagerInterface;
 class GetUpdatesManager
 {
     private const CONNECTION_CLASSES = [
-        SocialNetwork::TELEGRAM_CODE => TelegramGetUpdatesConnection::class,
-        SocialNetwork::VKONTAKTE_CODE => VkontakteGetUpdatesConnection::class,
+        SocialNetworkConfig::TELEGRAM_CODE => TelegramGetUpdatesConnection::class,
+        SocialNetworkConfig::VKONTAKTE_CODE => VkontakteGetUpdatesConnection::class,
     ];
 
     private EntityManagerInterface $em;
 
     /**
-     * [...socialNetworkId => GetUpdatesConnectionInterface]
+     * [...socialNetworkConfigId => GetUpdatesConnectionInterface]
      * 
      * @var array<int, GetUpdatesConnectionInterface>
      */
@@ -37,13 +37,13 @@ class GetUpdatesManager
         $botRepository = $this->em->getRepository(Bot::class);
 
         foreach ($botRepository->findAll() as $bot) {
-            foreach ($bot->getSocialNetworks() as $network) {
+            foreach ($bot->getSocialNetworkConfigs() as $network) {
                 $this->addConnection($bot, $network);
             }
         }
     }
 
-    public function addConnection(Bot $bot, SocialNetwork $network): void
+    public function addConnection(Bot $bot, SocialNetworkConfig $network): void
     {
         $class = self::CONNECTION_CLASSES[$network];
 
@@ -56,15 +56,15 @@ class GetUpdatesManager
 
     public function removeConnections(): void
     {
-        foreach ($this->connections as $socialNetworkId => $_) {
-            $this->removeConnection($socialNetworkId);
+        foreach ($this->connections as $socialNetworkConfigId => $_) {
+            $this->removeConnection($socialNetworkConfigId);
         }
     }
 
-    public function removeConnection(int $socialNetworkId): void
+    public function removeConnection(int $socialNetworkConfigId): void
     {
-        $this->connections[$socialNetworkId]->stopListening();
+        $this->connections[$socialNetworkConfigId]->stopListening();
 
-        unset($this->connections[$socialNetworkId]);
+        unset($this->connections[$socialNetworkConfigId]);
     }
 }

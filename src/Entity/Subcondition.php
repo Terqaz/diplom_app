@@ -14,8 +14,13 @@ class Subcondition
     #[ORM\Column]
     private ?int $id = null;
 
+    /** Порядковый номер условия */
     #[ORM\Column(type: Types::SMALLINT)]
     private ?int $serialNumber = null;
+
+    /** Совпадает ли выбранный ответ на вопрос с answerVariant */
+    #[ORM\Column(options: ['default' => true])]
+    private ?bool $isEqual = true;
 
     #[ORM\ManyToOne(inversedBy: 'subconditions')]
     #[ORM\JoinColumn(nullable: false)]
@@ -62,6 +67,18 @@ class Subcondition
     public function setAnswerVariant(?AnswerVariant $answerVariant): self
     {
         $this->answerVariant = $answerVariant;
+
+        return $this;
+    }
+
+    public function isIsEqual(): ?bool
+    {
+        return $this->isEqual;
+    }
+
+    public function setIsEqual(bool $isEqual): self
+    {
+        $this->isEqual = $isEqual;
 
         return $this;
     }

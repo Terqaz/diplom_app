@@ -2,26 +2,26 @@
 
 namespace App\Repository;
 
-use App\Entity\SocialNetwork;
+use App\Entity\SocialNetworkConfig;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<SocialNetwork>
+ * @extends ServiceEntityRepository<SocialNetworkConfig>
  *
- * @method SocialNetwork|null find($id, $lockMode = null, $lockVersion = null)
- * @method SocialNetwork|null findOneBy(array $criteria, array $orderBy = null)
- * @method SocialNetwork[]    findAll()
- * @method SocialNetwork[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method SocialNetworkConfig|null find($id, $lockMode = null, $lockVersion = null)
+ * @method SocialNetworkConfig|null findOneBy(array $criteria, array $orderBy = null)
+ * @method SocialNetworkConfig[]    findAll()
+ * @method SocialNetworkConfig[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class SocialNetworkRepository extends ServiceEntityRepository
+class SocialNetworkConfigRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, SocialNetwork::class);
+        parent::__construct($registry, SocialNetworkConfig::class);
     }
 
-    public function save(SocialNetwork $entity, bool $flush = false): void
+    public function save(SocialNetworkConfig $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -30,7 +30,7 @@ class SocialNetworkRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(SocialNetwork $entity, bool $flush = false): void
+    public function remove(SocialNetworkConfig $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 
@@ -40,7 +40,7 @@ class SocialNetworkRepository extends ServiceEntityRepository
     }
 
 //    /**
-//     * @return SocialNetwork[] Returns an array of SocialNetwork objects
+//     * @return SocialNetworkConfig[] Returns an array of SocialNetworkConfig objects
 //     */
 //    public function findByExampleField($value): array
 //    {
@@ -54,7 +54,7 @@ class SocialNetworkRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-//    public function findOneBySomeField($value): ?SocialNetwork
+//    public function findOneBySomeField($value): ?SocialNetworkConfig
 //    {
 //        return $this->createQueryBuilder('s')
 //            ->andWhere('s.exampleField = :val')

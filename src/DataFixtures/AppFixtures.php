@@ -5,10 +5,13 @@ namespace App\DataFixtures;
 use App\Entity\AnswerVariant;
 use App\Entity\Bot;
 use App\Entity\BotUser;
+use App\Entity\JumpCondition;
 use App\Entity\Question;
 use App\Entity\Respondent;
 use App\Entity\RespondentAnswer;
 use App\Entity\RespondentForm;
+use App\Entity\Schedule;
+use App\Entity\Subcondition;
 use App\Entity\Survey;
 use App\Entity\SurveyUser;
 use App\Entity\User;
@@ -46,7 +49,7 @@ class AppFixtures extends Fixture
                 $user->setRoles(['ROLE_SUPER_ADMIN']);
             }
             $users[] = $user;
-            $this->manager->persist($user);
+            $manager->persist($user);
         }
 
         /** @var Respondent[] */
@@ -54,42 +57,42 @@ class AppFixtures extends Fixture
         for ($i = 1; $i <= 100; $i++) {
             $respondent = $this->createRespondent($i);
             $respondents[] = $respondent;
-            $this->manager->persist($respondent);
+            $manager->persist($respondent);
         }
 
         // Создаем ботов
 
+        $botUsersData = [
+            ['user' => $users[0], 'role' => BotUser::ADMIN],
+            ['user' => $users[1], 'role' => BotUser::QUESTIONER],
+            ['user' => $users[2], 'role' => BotUser::VIEWER],
+            ['user' => $users[3], 'role' => BotUser::VIEWER],
+        ];
+
         $privateBots = [];
 
         foreach (Data::BOTS as $botData) {
-            $privateBots[] = $this->createBot($botData, true, botUsersData: [
-                ['user' => $users[0], 'role' => BotUser::ADMIN],
-                ['user' => $users[1], 'role' => BotUser::QUESTIONER],
-                ['user' => $users[2], 'role' => BotUser::VIEWER],
-                ['user' => $users[3], 'role' => BotUser::VIEWER],
-            ]);
+            $privateBots[] = $this->createBot($botData, true, $botUsersData);
         }
 
         $publicBots = [];
 
         foreach (Data::BOTS as $botData) {
-            $publicBots[] = $this->createBot($botData, false, botUsersData: [
-                ['user' => $users[0], 'role' => BotUser::ADMIN],
-                ['user' => $users[1], 'role' => BotUser::QUESTIONER],
-            ]);
+            $publicBots[] = $this->createBot($botData, false, $botUsersData);
         }
 
         // ADMIN > QUESTIONER > VIEWER > AUTHORIZED > ANONYM
 
         // Независимо от приватности (бота или опроса):
-        //   - CU - нужны права ADMIN для бота и хотя бы QUESTIONER для опроса
-        //   - D (только опрос) - нужны права ADMIN
+        //   - C - нужны права AUTHORIZED для бота и QUESTIONER для опроса
+        //   - U - нужны права ADMIN для бота и QUESTIONER для опроса
+        //   - D (только опрос) - нужны права QUESTIONER
 
         // 1. Если приватный (бот или опрос):
         //   - R - нужны права VIEWER
         // 2. Если публичный:
         //   - R - любые пользователи
-        
+
         // В публичном боте возможен R:
         // 1. Для ANONYM:
         //   - Основной информации
@@ -127,7 +130,7 @@ class AppFixtures extends Fixture
             ],
         ];
 
-        // Добавляем ответы на опросы
+        // Добавляем ответы на вопросы
 
         $this->addAnswersToSurveys($surveys[true][true], array_slice($respondents, 0, 3));
         $this->addAnswersToSurveys($surveys[true][false], array_slice($respondents, 0, 3));
@@ -142,29 +145,6 @@ class AppFixtures extends Fixture
         }
 
         $manager->flush();
-    }
-
-    /**
-     * @return Survey[]
-     */
-    public function createSurveysInBots(array $bots, array $surveyUsersData, bool $surveysIsPrivate): array
-    {
-        $surveys = [];
-
-        foreach (Data::BOTS as $i => $botData) {
-            foreach ($botData['surveys'] as $surveyId) {
-                $survey = $this->createSurvey(
-                    Data::SURVEYS[$surveyId],
-                    $surveyUsersData,
-                    $surveysIsPrivate
-                );
-
-                $bots[$i]->addSurvey($survey);
-                $surveys[] = $survey;
-            }
-        }
-
-        return $surveys;
     }
 
     private function createUser(int $i): User
@@ -198,6 +178,7 @@ class AppFixtures extends Fixture
                 'password'
             )
         );
+
         return $user;
     }
 
@@ -239,6 +220,30 @@ class AppFixtures extends Fixture
         return $bot;
     }
 
+    
+    /**
+     * @return Survey[]
+     */
+    public function createSurveysInBots(array $bots, array $surveyUsersData, bool $surveysIsPrivate): array
+    {
+        $surveys = [];
+
+        foreach (Data::BOTS as $i => $botData) {
+            foreach ($botData['surveys'] as $surveyId) {
+                $survey = $this->createSurvey(
+                    Data::SURVEYS[$surveyId],
+                    $surveyUsersData,
+                    $surveysIsPrivate
+                );
+
+                $bots[$i]->addSurvey($survey);
+                $surveys[] = $survey;
+            }
+        }
+
+        return $surveys;
+    }
+
     private function createSurvey(array $surveyData, array $surveyUsersData, bool $isPrivate): Survey
     {
         $survey = (new Survey())
@@ -246,8 +251,36 @@ class AppFixtures extends Fixture
             ->setDescription($surveyData['description'] ?? null)
             ->setIsPrivate($isPrivate);
 
-        foreach ($surveyData['questions'] as $questionData) {
-            $survey->addQuestion($this->createQuestion($questionData));
+        $elementsData = $surveyData['elements'] ?? [];
+        $elements = [];
+
+        // Сначала создаем вопросы пропуская условия перехода
+        foreach ($elementsData as $elementData) {
+            $isJump = $elementData['isJump'] ?? false;
+            if ($isJump) {
+                $elements[] = $elementData;
+                continue;
+            }
+
+            $question = $this->createQuestion($elementData);
+
+            $survey->addQuestion($this->createQuestion($elementData));
+            
+            $elements[] = $question;
+        }
+
+        $this->manager->persist($survey);
+
+        // Теперь создаем условия перехода, ссылаясь на вопросы
+        foreach ($elements as $element) {
+            if ($element instanceof Question) {
+                continue;
+            }
+
+            $survey->addJumpCondition($this->createJumpCondition(
+                $element,
+                $elements
+            ));
         }
 
         foreach ($surveyUsersData as $surveyUserData) {
@@ -258,18 +291,28 @@ class AppFixtures extends Fixture
             );
         }
 
+        $scheduleData = $surveyData['schedule'] ?? null;
+        if (null !== $scheduleData) {
+            $survey->setSchedule(
+                $this->createSchedule($scheduleData)
+            );
+        }
+
         return $survey;
     }
 
     private function createQuestion(array $questionData): Question
     {
         $question = (new Question())
-            ->setType($questionData['type'])
-            ->setOwnAnswersCount($questionData['ownAnswersCount'])
             ->setSerialNumber($questionData['serialNumber'])
-            ->setTitle($questionData['title']);
+            ->setType($questionData['type'])
+            ->setTitle($questionData['title'])
+            ->setIsRequired($questionData['isRequired'] ?? false)
+            ->setMaxVariants($questionData['maxVariants'] ?? null)
+            ->setOwnAnswersCount($questionData['ownAnswersCount'] ?? 0);
 
-        foreach ($questionData['variants'] as $i => $variantName) {
+        $variantsData = $questionData['variants'] ?? [];
+        foreach ($variantsData as $i => $variantName) {
             $question->addVariant(
                 (new AnswerVariant())
                     ->setSerialNumber($i) // TODO null?
@@ -278,6 +321,31 @@ class AppFixtures extends Fixture
         }
 
         return $question;
+    }
+
+    private function createJumpCondition(array $jumpConditionData, array $elements): JumpCondition
+    {
+        $jumpCondition = new JumpCondition();
+
+        $jumpCondition
+            ->setToQuestion($elements[$jumpConditionData['toQuestion']])
+            ->setSerialNumber($jumpConditionData['serialNumber']);
+
+        foreach ($jumpConditionData['subconditions'] as $i => $subconditionData) {
+            [$questionIndex, $variantIndex] = $subconditionData['answerVariant'];
+
+            /** @var AnswerVariant $variant */
+            $variant = $elements[$questionIndex]->getVariants()->get($variantIndex);
+
+            $jumpCondition->addSubcondition(
+                (new Subcondition())
+                    ->setSerialNumber($i)
+                    ->setAnswerVariant($variant)
+                    ->setIsEqual($subconditionData['isEqual'])
+            );
+        }
+
+        return $jumpCondition;
     }
 
     /**
@@ -295,16 +363,19 @@ class AppFixtures extends Fixture
                 $form = (new RespondentForm())
                     ->setSentDate($date);
 
+                $date->add(new DateInterval('P1D'));
+
                 $respondent->addRespondentForm($form);
                 $survey->addRespondentForm($form);
 
-                $this->addAnswersToQuestions(
-                    $respondent,
-                    $survey->getQuestions(),
-                    Data::ANSWERS[$si][$ri]
-                );
-
-                $date->add(new DateInterval('P1D'));
+                $answers = Data::ANSWERS[$si][$ri] ?? null;
+                if (null !== $answers) {
+                    $this->addAnswersToQuestions(
+                        $respondent,
+                        $survey->getQuestions(),
+                        Data::ANSWERS[$si][$ri]
+                    );
+                }
             }
         }
     }
@@ -367,6 +438,17 @@ class AppFixtures extends Fixture
         }
 
         return $answer;
+    }
+
+    private function createSchedule(array $scheduleData): Schedule
+    {
+        $schedule = new Schedule;
+
+        $schedule
+            ->setTypeAndRepeatValues($scheduleData['type'], $scheduleData['repeatValues'])
+            ->setIsNoticeOnStart(true);
+
+        return $schedule;
     }
 
     private static function createPhone(): string

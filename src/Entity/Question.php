@@ -38,17 +38,12 @@ class Question
     #[Assert\Choice(choices: Question::TYPES)]
     private ?string $type = null;
 
+    /** Порядковый номер среди всех ответов и условий перехода */
     #[ORM\Column(type: Types::SMALLINT)]
     private ?int $serialNumber = null;
 
     #[ORM\Column(length: 400, unique: true)]
     private ?string $title = null;
-
-    /**
-     * id-шники необходимых выбираемых ответов через пробел
-     */
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $correctAnswer = null;
 
     /**
      * Если через запятую, то границы интервалов шкалы.
@@ -79,7 +74,7 @@ class Question
     #[ORM\OneToMany(mappedBy: 'question', targetEntity: RespondentAnswer::class)]
     private Collection $respondentAnswers;
 
-    #[ORM\OneToMany(mappedBy: 'toQuestion', targetEntity: JumpCondition::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'toQuestion', targetEntity: JumpCondition::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $jumpConditions;
 
     public function __construct()
@@ -132,18 +127,6 @@ class Question
                 $answer->setQuestion(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getCorrectAnswer(): ?string
-    {
-        return $this->correctAnswer;
-    }
-
-    public function setCorrectAnswer(?string $correctAnswer): self
-    {
-        $this->correctAnswer = $correctAnswer;
 
         return $this;
     }

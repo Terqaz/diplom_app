@@ -1,0 +1,39 @@
+{% extends 'general_show_page.html.twig' %}
+
+{% block content %}
+	{% set chartWidth = 800 %}
+
+	{% embed "components/content_block.html.twig" with {'header': 'survey_statistics.forms_by_time'} %}
+		{% block content %}
+			<div class="mb-3">
+				{{ render_chart(chart, {'width': chartWidth, 'height': 500}) }}
+			</div>
+
+			{{ form_start(filter, {'attr': {'class': 'input-group input-group-sm'}}) }}
+
+			<span class="input-group-text">Отобразить за</span>
+			{{ form_widget(filter.rfPeriod, {'attr': {'class': 'form-select'}}) }}
+			
+			<button type="submit" class="btn btn-sm btn-primary me-auto">
+				Применить
+			</button>
+
+			{{ form_end(filter) }}
+		{% endblock %}
+	{% endembed %}
+
+	{% embed "components/content_block.html.twig" with {'header': 'survey_statistics.answer_variants_choosed_count'} %}
+		{% block content %}
+			{% for questionTitle, chart in answersCountCharts %}
+				<div class="mb-3">
+					{% if chart is not null %}
+						{{ render_chart(chart, {'width': chartWidth}) }}
+					{% else %}
+						<h5>{{ questionTitle }}</h5>
+						<p>Нет имеет вариантов ответов</p>
+					{% endif %}
+				</div>
+			{% endfor %}
+		{% endblock %}
+	{% endembed %}
+{% endblock %}

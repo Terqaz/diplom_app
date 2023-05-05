@@ -1,0 +1,24 @@
+{% if accesses|length is same as(0) %}
+	<p>Нет настроенных доступов</p>
+{% else %}
+	<table class="table">
+		<thead>
+			<tr>
+				<th scope="col">#</th>
+				<th scope="col">Имя</th>
+				<th scope="col">Email</th>
+				<th scope="col">Роль</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for index, access in accesses %}
+				<tr>
+					<th scope="row">{{ index + 1 }}</th>
+					<td>{{ access.userData.lastAndFirstName }}</td>
+					<td>{{ access.userData.email }}</td>
+					<td>{{ ('user.roles.' ~ access.role)|trans }}</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+{% endif %}

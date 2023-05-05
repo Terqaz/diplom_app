@@ -1,0 +1,6 @@
+<h5 id="{{ header|split('.')|last }}" class="mb-0 ms-3 text-bold">{{ ('block_headers.' ~ header)|trans }}</h5>
+<hr>
+<div class="d-flex flex-column mb-4 ms-3">
+	{% block content %}
+	{% endblock %}
+</div>

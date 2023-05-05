@@ -1,0 +1,21 @@
+{# Для отображения списка ботов или опросов #}
+
+{% embed "components/content_block.html.twig" with {'header': header} %}
+	{% block content %}
+		<ol class="list-group list-group-numbered list-group-flush">
+			{% for entity in entities %}
+				{% set isPrivate = entity.isPrivate ? 'true' : 'false' %}
+
+				<li class="list-group-item d-flex justify-content-between align-items-start">
+					<div class="ms-2 me-auto">
+						<a href="{{ path(entityShowRoute, {'id': entity.id}) }}" class="text-decoration-none">{{ entity.title ~ ' >' }}</a>
+						<p class="mb-0">{{('is_private.' ~ isPrivate)|trans}}</p>
+					</div>
+					<small class="text-muted">{{ ('user.roles.' ~ entity.getUserRole(app.user))|trans }}</small>
+				</li>
+			{% else %}
+				<p>Пусто</p>
+			{% endfor %}
+		</ol>
+	{% endblock %}
+{% endembed %}

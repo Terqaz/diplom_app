@@ -1,21 +1,17 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Survey{% endblock %}
-
-{% block body %}
-    <div class="px-4 pt-5 my-5 text-center pb-5 border-bottom">
-        <h1 class="display-5 fw-bold">SURVEY BOTS</h1>
-        <div class="col-lg-6 mx-auto">
-            <p class="lead mb-4">Создайте свой опрос и подключите его к боту ВКонтакте или Телеграм</p>
-            <p class="lead mb-4">Бот сам опросит пользователей</p>
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <a class="btn btn-primary btn-lg px-4 gap-3" href="{{ path('app_register') }}">Начать</a>
-            </div>
-        </div>
-    </div>
+{% block title %}Survey
 {% endblock %}
 
-{% block stylesheets %}
-    {{ parent() }}
-    {{ encore_entry_link_tags('about') }}
+{% block body %}
+	<div class="px-4 pt-5 my-5 text-center pb-5">
+		<h1 class="display-5 fw-bold">SURVEY BOTS</h1>
+		<div class="mx-auto">
+			<p class="lead mb-4">Создайте свой опрос и подключите его к боту ВКонтакте или Телеграм</p>
+			<p class="lead mb-4">Бот сам опросит пользователей</p>
+			<div class="d-sm-flex justify-content-sm-center">
+				<a class="btn btn-primary btn-lg px-4" href="{{ path('app_register') }}">Начать</a>
+			</div>
+		</div>
+	</div>
 {% endblock %}

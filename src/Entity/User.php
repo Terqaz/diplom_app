@@ -5,12 +5,15 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: 'user_data')]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
 #[UniqueEntity(fields: ['phone'], message: 'There is already an account with this phone')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -30,6 +33,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $patronymic = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Groups(['userAccessesEdit'])]
     protected ?string $email = null;
 
     #[ORM\Column(length: 16, unique: true, nullable: true)]
@@ -73,6 +77,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /** @return string ФИО сотрудника */
+    public function getFullName(): string
+    {
+        $s = $this->lastName . ' ' . $this->firstName;
+        if (null !== $this->patronymic && '' !== $this->patronymic) {
+            $s .= ' ' . $this->patronymic;
+        }
+        return $s;
+    }
+
+    #[Groups(['userAccessesEdit'])]
+    public function getLastAndFirstName(): string
+    {
+        return $this->lastName . ' ' . $this->firstName;
+    }
+
     /**
      * A visual identifier that represents this user.
      *
@@ -80,7 +100,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->phone;
+        return (string) $this->email;
     }
 
     /**
@@ -170,6 +190,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPhone(string $phone): self
     {
         $this->phone = $phone;
+
+        return $this;
+    }
+
+    public function addAccess(BotUser|SurveyUser $entity): self
+    {
+        if ($entity instanceof BotUser) {
+            $this->addBotUser($entity);
+        } else if ($entity instanceof SurveyUser) {
+            $this->addSurveyUser($entity);
+        }
+
+        return $this;
+    }
+
+    public function removeAccess(BotUser|SurveyUser $entity): self
+    {
+        if ($entity instanceof BotUser) {
+            $this->removeBotUser($entity);
+        } else if ($entity instanceof SurveyUser) {
+            $this->removeSurveyUser($entity);
+        }
 
         return $this;
     }

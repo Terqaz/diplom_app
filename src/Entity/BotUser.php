@@ -2,41 +2,40 @@
 
 namespace App\Entity;
 
+use App\Enum\UserRole;
 use App\Repository\BotUserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BotUserRepository::class)]
 class BotUser
 {
-    /** Администратор бота */
-    public const ADMIN = 'admin';
-    /** Анкетер */
-    public const QUESTIONER = 'questioner';
-    /** Просматривающий результаты */
-    public const VIEWER = 'viewer';
-
+    /** Возможные роли */
     public const ROLES = [
-        self::ADMIN,
-        self::QUESTIONER,
-        self::VIEWER,
+        UserRole::ADMIN,
+        UserRole::QUESTIONER,
+        UserRole::VIEWER,
     ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['userAccessesEdit'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 32)]
     #[Assert\Choice(choices: BotUser::ROLES)]
+    #[Groups(['userAccessesEdit'])]
     private ?string $role = null;
 
-    #[ORM\ManyToOne(inversedBy: 'botUsers')]
+    #[ORM\ManyToOne(inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Bot $bot = null;
 
     #[ORM\ManyToOne(inversedBy: 'botUsers')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['userAccessesEdit'])]
     private ?User $userData = null;
 
     public function getId(): ?int

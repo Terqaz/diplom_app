@@ -1,5 +1,39 @@
+$primary: #0074d9;
+$danger: #ff4136;
+
+// $primary,
+// $secondary,
+// $success,
+// $info,
+// $warning,
+// $danger,
+// $light,
+// $dark
+
+@import '~bootstrap-icons/font/bootstrap-icons.css';
 @import "~bootstrap/scss/bootstrap";
 
 * {
     font-family: Candara, serif;
+}
+
+.info-block {
+    max-width: 50rem;
+}
+
+.rounded-top-left-2 {
+    border-top-left-radius: $border-radius-sm !important;
+}
+
+.rounded-top-right-2 {
+    border-top-right-radius: $border-radius-sm !important;
+}
+
+.search-input {
+    min-width: 90px;
+    max-width: 270px;
+}
+
+.content__wrapper {
+    max-width: 80rem;
 }

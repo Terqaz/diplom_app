@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\OrderBy;
 
 #[ORM\Entity(repositoryClass: JumpConditionRepository::class)]
 class JumpCondition
@@ -28,7 +29,11 @@ class JumpCondition
     #[ORM\JoinColumn(nullable: false)]
     private ?Question $toQuestion = null;
 
-    #[ORM\OneToMany(mappedBy: 'jumpCondition', targetEntity: Subcondition::class, cascade: ['persist'], orphanRemoval: true)]
+    /**
+     * @var Collection<Subcondition>
+     */
+    #[ORM\OneToMany(mappedBy: 'jumpCondition', targetEntity: Subcondition::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[OrderBy(['serialNumber' => 'ASC'])]
     private Collection $subconditions;
 
     public function __construct()
@@ -93,6 +98,32 @@ class JumpCondition
         }
 
         return $this;
+    }
+
+    public function isJumpApplying(array $choosedAnswers): bool
+    {
+        $isJump = true;
+        /** @var Subcondition $subcondition */
+        foreach ($this->subconditions as $subcondition) {
+            $question = $subcondition->getAnswerVariant()->getQuestion();
+
+            // Если ответы не даны, то игнорим условие перехода 
+            $answers = $choosedAnswers[$question->getId()] ?? [];
+
+            if ($subcondition->isEqual()) {
+                // Хотя бы один ответ должен совпадать
+                if (!in_array($subcondition->getAnswerVariant()->getId(), $answers)) {
+                    $isJump = false;
+                }
+            } else {
+                // Никакой ответ не должен совпадать
+                if (in_array($subcondition->getAnswerVariant()->getId(), $answers)) {
+                    $isJump = false;
+                }
+            }
+        }
+
+        return $isJump;
     }
 
     public function getToQuestion(): ?Question

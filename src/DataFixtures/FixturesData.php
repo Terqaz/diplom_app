@@ -1,6 +1,6 @@
 <?php
 
-namespace DataFixtures;
+namespace App\DataFixtures;
 
 use App\Entity\Bot;
 use App\Entity\Question;
@@ -8,6 +8,8 @@ use App\Entity\RespondentAnswer;
 use App\Entity\Schedule;
 use App\Entity\Survey;
 use App\Entity\SurveyIteration;
+use App\Enum\AnswerValueType;
+use App\Enum\QuestionType;
 
 class FixturesData
 {
@@ -47,11 +49,13 @@ class FixturesData
     public const BOTS = [
         0 => [
             'title' => 'Опросы ЛГТУ',
+            'isPrivate' => true,
             'description' => 'Официальный бот ЛГТУ',
             'surveys' => [0, 1]
         ],
         1 => [
             'title' => 'Опросы ФАИ',
+            'isPrivate' => true,
             'description' => 'Здесь мы проводим очень интересные опросы',
             'surveys' => [2]
         ],
@@ -73,49 +77,58 @@ class FixturesData
         0 => [
             'title' => 'Нужно ли вам больше лавочек?',
             'description' => 'Данный опрос предназначен для определения нехватки лавочек в университетских корпусах по мнению студентов',
+            'isPrivate' => true,
             'isEnabled' => true,
             'schedule' => [ // 10-го января и июня в 15:00
                 'type' => Schedule::DURING_YEAR,
-                'repeatValues' => "[[1, 6], 10, '15:00']",
-                'isNoticeOnStart' => true
+                'repeatValues' => [[1, 6], 10, "15:00"],
+                'isNoticeOnStart' => true,
+                'isOnce' => false
             ],
             'elements' => [
                 0 => [
-                    'type' => Question::CHOOSE_ONE,
+                    'type' => QuestionType::CHOOSE_ONE,
                     'ownAnswersCount' => 1,
                     'serialNumber' => 1,
                     'title' => 'Напишите вашу фамилию',
+                    'isRequired' => true,
                 ],
                 1 => [
-                    'type' => Question::CHOOSE_ONE,
+                    'type' => QuestionType::CHOOSE_ONE,
                     'serialNumber' => 2,
                     'title' => 'Выберите ваш факультет',
-                    'variants' => ['ФАИ', 'ИМиТ', 'МИ', 'ИСНЭП', 'ИСФ', 'ФТФ', 'ЗФ', 'ФДО', 'УК', 'НИИ']
+                    'variants' => ['ФАИ', 'ИМиТ', 'МИ', 'ИСНЭП', 'ИСФ', 'ФТФ', 'ЗФ', 'ФДО', 'УК', 'НИИ'],
+                    'isRequired' => true,
                 ],
                 2 => [
-                    'type' => Question::CHOOSE_ONE_RANGED,
+                    'type' => QuestionType::CHOOSE_ONE,
                     'serialNumber' => 3,
                     'title' => 'Введите номер курса',
+                    'answerValueType' => AnswerValueType::INTEGER,
                     'intervalBorders' => '1-6',
+                    'isRequired' => true,
                 ],
                 3 => [
-                    'type' => Question::CHOOSE_MANY,
+                    'type' => QuestionType::CHOOSE_MANY,
                     'serialNumber' => 4,
                     'title' => 'Перечислите корпуса, в которых вы чаще всего бываете',
                     'variants' => ['1', '2', '3', '4', '5', '9', 'Административный', 'Аудиторный', 'Спортивный комплекс'],
                     'maxVariants' => 3,
+                    'isRequired' => true,
                 ],
                 4 => [
-                    'type' => Question::CHOOSE_ONE,
+                    'type' => QuestionType::CHOOSE_ONE,
                     'serialNumber' => 5,
                     'title' => 'Как часто бывают заняты лавочки в указанных вами корпусах?',
                     'variants' => ['Никогда', 'Иногда', 'Редко', 'Часто', 'Всегда'],
+                    'isRequired' => true,
                 ],
                 5 => [
-                    'type' => Question::CHOOSE_ONE,
+                    'type' => QuestionType::CHOOSE_ONE,
                     'serialNumber' => 6,
                     'title' => 'Как вы считаете, нужно ли установить в данных корпусах больше лавочек?',
                     'variants' => ['Нет', 'Не знаю', 'Да'],
+                    'isRequired' => true,
                 ]
             ],
         ],
@@ -130,13 +143,14 @@ class FixturesData
         3 => [
             'title' => 'Анкета социология здоровья',
             'description' => 'Данный опрос предназначен оценки медицины в России',
+            'isPrivate' => false,
             'elements' => [
                 0 => [
                     'serialNumber' => 1,
-                    'type' => Question::CHOOSE_MANY,
+                    'type' => QuestionType::CHOOSE_ONE,
                     'title' => 'Вы обращались или не обращались в течение последнего года в государственные, муниципальные, частные медицинские учреждения для получения медицинской помощи?',
                     'isRequired' => false,
-                    'maxVariants' => 3,
+                    'maxVariants' => 1,
                     'variants' => [
                         'Да, обращался в государственные, муниципальные',
                         'Да, обращался в частные',
@@ -148,7 +162,7 @@ class FixturesData
                 1 => [
                     'isJump' => true,
                     'serialNumber' => 2,
-                    'toQuestion' => 3, // ключ из массива elements
+                    'toQuestion' => 4, // ключ из данного массива elements
                     'subconditions' => [
                         0 => [
                             'isEqual' => false,
@@ -158,10 +172,9 @@ class FixturesData
                 ],
                 2 => [
                     'serialNumber' => 3,
-                    'type' => Question::CHOOSE_ONE,
+                    'type' => QuestionType::CHOOSE_ONE,
                     'title' => 'Скажите, пожалуйста, Вы в целом остались довольны или недовольны оказанной Вам медицинской помощью в государственных/ муниципальных медицинских учреждениях?',
                     'isRequired' => false,
-                    'maxVariants' => 1,
                     'variants' => [
                         'Полностью доволен',
                         'По большей части доволен',
@@ -172,10 +185,9 @@ class FixturesData
                 ],
                 3 => [
                     'serialNumber' => 4,
-                    'type' => Question::CHOOSE_ONE,
+                    'type' => QuestionType::CHOOSE_ONE,
                     'title' => 'Российское здравоохранение сейчас…',
                     'isRequired' => false,
-                    'maxVariants' => 1,
                     'variants' => [
                         'Не развивается/деградирует',
                         'Догоняет по всем направлениям мировую медицину',
@@ -184,7 +196,7 @@ class FixturesData
                 ],
                 4 => [
                     'serialNumber' => 5,
-                    'type' => Question::CHOOSE_MANY,
+                    'type' => QuestionType::CHOOSE_MANY,
                     'title' => 'В каких трёх из этих направлений Вы бы хотели увидеть наибольший прогресс в ближайшие пять лет?',
                     'isRequired' => false,
                     'ownAnswersCount' => 1,

@@ -1,34 +1,127 @@
-{% extends 'base.html.twig' %}
+{% extends 'general_show_page.html.twig' %}
 
-{% block title %}Survey{% endblock %}
+{% block content %}
+	{% set surveyUserRole = survey.getUserRole(app.user) %}
 
-{% block body %}
-    <h1>Survey</h1>
+	{% embed "components/content_block.html.twig" with {'header': 'common.main_info'} %}
+		{% block content %}
+			<div class="input-group mb-3">
+				<span class="input-group-text bg-white">Название</span>
+				<input type="text" class="form-control" value="{{ survey.title }}" disabled>
+			</div>
+			<div class="input-group mb-3">
+				<span class="input-group-text bg-white">Описание</span>
+				<textarea class="form-control" disabled rows="2">{{ survey.description }}</textarea>
+			</div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ survey.id }}</td>
-            </tr>
-            <tr>
-                <th>Title</th>
-                <td>{{ survey.title }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ survey.description }}</td>
-            </tr>
-            <tr>
-                <th>IsPrivate</th>
-                <td>{{ survey.isPrivate ? 'Yes' : 'No' }}</td>
-            </tr>
-        </tbody>
-    </table>
+			{% if surveyUserRole is same as('questioner') %}
+				{{ component('info_form:checkbox', {
+					'label': 'Приватный', 
+					'checked': survey.isPrivate
+				}) }}
 
-    <a href="{{ path('app_survey_index') }}">back to list</a>
+				{{ component('info_form:checkbox', {
+					'label': 'Активен', 
+					'help': (survey.isEnabled ? 'Д' : 'Не д') ~ 'оступен для прохождения в социальной сети',
+					'checked': survey.isEnabled
+				}) }}
 
-    <a href="{{ path('app_survey_edit', {'id': survey.id}) }}">edit</a>
+				<a class="btn btn-sm btn-primary me-auto" href="{{ path('app_survey_main_info_edit', {'id': survey.id}) }}" role="button">Изменить</a>
+			{% endif %}
+		{% endblock %}
+	{% endembed %}
 
-    {{ include('survey/_delete_form.html.twig') }}
+	{% if surveyUserRole in ['viewer', 'questioner'] %}
+		{% embed "components/content_block.html.twig" with {'header': 'survey.repeat_settings'} %}
+			{% block content %}
+				{{ component('info_form:checkbox', {
+					'label': 'Многоразовый', 
+					'help': survey.isMultiple ? 'Не разбивается на итерации' : 'Разбивается на итерации',
+					'checked': survey.isMultiple
+				}) }}
+
+				{{ component('info_form:checkbox', {
+					'label': 'По расписанию', 
+					'help': 'Будет доступен для одного прохождения только после указанных моментов времени',
+					'checked': survey.schedule is not null
+				}) }}
+
+				{% if survey.schedule is not null %}
+					{% set schedule = survey.schedule %}
+
+					{{ component('info_form:select', {
+						'label': 'Частота повторения',
+						'value': ('schedule.types.' ~ schedule.type)|trans,
+						'help': ('forms.survey.schedule.type.help.' ~ schedule.type)|trans
+					}) }}
+
+					<div class="mb-3">
+						<div class="input-group mb-1">
+							{% set values = schedule.repeatValues|json_decode %}
+
+							{% if schedule.type is same as('during_day') %}
+								{% set times = values %}
+
+								<span class="input-group-text bg-white">Список часов и минут дня</span>
+								<input type="text" class="form-control" value="{{ times|join(', ') }}" disabled>
+
+							{% elseif schedule.type in ['during_week', 'during_month'] %}
+								{% set days, time = values[0], values[1] %}
+
+								<span class="input-group-text bg-white">Дни для проведения</span>
+								<input type="text" class="form-control" value="{{ days|join(', ') }}" disabled>
+
+								<span class="input-group-text bg-white">Время дня</span>
+								<input type="text" class="form-control" value="{{ time }}" disabled>
+
+							{% elseif schedule.type is same as('during_year') %}
+								{% set months, day, time = values[0], values[1], values[2] %}
+
+								<span class="input-group-text bg-white">Месяцы для проведения</span>
+								<input type="text" class="form-control" value="{{ months|join(', ') }}" disabled>
+
+								<span class="input-group-text bg-white">День месяца</span>
+								<input type="number" class="form-control" value="{{ day }}" min="1" max="31" disabled>
+
+								<span class="input-group-text bg-white">Время дня</span>
+								<input type="text" class="form-control" value="{{ time }}" disabled>
+							{% endif %}
+						</div>
+					</div>
+
+					{{ component('info_form:checkbox', {
+						'label': 'Одноразовый опрос', 
+						'help': 'Будет ли проведена только одна итерация опроса ',
+						'checked': survey.schedule.isOnce
+					}) }}
+
+					{{ component('info_form:checkbox', {
+						'label': 'Уведомлять при старте',
+						'checked': survey.schedule.isNoticeOnStart
+					}) }}
+
+					{% if survey.schedule.noticeBefore is not empty and survey.schedule.noticeBefore > 0 %}
+						{{ component('info_form:select', {
+							'label': 'Уведомить до начала за',
+							'value': 'schedule.notice_before'|trans({'value': survey.schedule.noticeBefore})
+						}) }}
+					{% endif %}
+				{% endif %}
+
+				{% if surveyUserRole is same as('questioner') %}
+					<a class="btn btn-sm btn-primary me-auto" href="{{ path('app_survey_schedule_edit', {'id': survey.id}) }}" role="button">Настроить</a>
+				{% endif %}
+			{% endblock %}
+		{% endembed %}
+	{% endif %}
+
+	{% if surveyUserRole is same as('questioner') %}
+		{% embed "components/content_block.html.twig" with {'header': 'common.accesses'} %}
+			{% block content %}
+				<a class="btn btn-sm btn-primary me-auto" href="{{ path('app_survey_user_accesses_edit', {'id': survey.id}) }}" role="button">Настроить</a>
+
+				{% include 'components/accesses_table.html.twig' with {'accesses': survey.users} only %}
+			{% endblock %}
+		{% endembed %}
+	{% endif %}
 {% endblock %}

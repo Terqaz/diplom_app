@@ -1,34 +1,86 @@
-{% extends 'base.html.twig' %}
+{% extends 'general_show_page.html.twig' %}
 
-{% block title %}Bot{% endblock %}
+{% block content %}
+	{% set botUserRole = bot.getUserRole(app.user) %}
 
-{% block body %}
-    <h1>Bot</h1>
+	{% embed "components/content_block.html.twig" with {'header': 'common.main_info'} %}
+		{% block content %}
+			<div class="input-group mb-3">
+				<span class="input-group-text bg-white">Название</span>
+				<input type="text" class="form-control" value="{{ bot.title }}" disabled>
+			</div>
+			<div class="input-group mb-3">
+				<span class="input-group-text bg-white">Описание</span>
+				<textarea class="form-control" disabled rows="2">{{ bot.description }}</textarea>
+			</div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ bot.id }}</td>
-            </tr>
-            <tr>
-                <th>Title</th>
-                <td>{{ bot.title }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ bot.description }}</td>
-            </tr>
-            <tr>
-                <th>IsPrivate</th>
-                <td>{{ bot.isPrivate ? 'Yes' : 'No' }}</td>
-            </tr>
-        </tbody>
-    </table>
+			{% if botUserRole in ['questioner', 'admin'] %}
+				{{ component('info_form:checkbox', {
+					'label': 'Приватный', 
+					'checked': bot.isPrivate
+				}) }}
 
-    <a href="{{ path('app_bot_index') }}">back to list</a>
+				{% if botUserRole is same as('admin') %}
+					<a class="btn btn-sm btn-primary me-auto" href="{{ path('app_bot_main_info_edit', {'id': bot.id}) }}" role="button">Изменить</a>
+				{% endif %}
+			{% endif %}
+		{% endblock %}
+	{% endembed %}
 
-    <a href="{{ path('app_bot_edit', {'id': bot.id}) }}">edit</a>
+	{% include 'components/entity_list_block.html.twig' with {
+		'header': 'common.surveys', 
+		'entities': surveys, 
+		'entityShowRoute': 'app_survey_show'
+	} only %}
 
-    {{ include('bot/_delete_form.html.twig') }}
+	{% if bot.getUserRole(app.user) is same as('admin') %}
+		{% embed "components/content_block.html.twig" with {'header': 'bot.integrations'} %}
+			{% block content %}
+				{% set tgConfig = bot.telegramConfig %}
+				{% set vkConfig = bot.vkontakteConfig %}
+
+				{% if tgConfig is not null %}
+					<h6>Телеграм</h6>
+					{{ component('info_form:checkbox', {
+						'label': 'Включено', 
+						'checked': tgConfig.isEnabled
+					}) }}
+					<div class="input-group mb-3">
+						<span class="input-group-text bg-white">Имя бота</span>
+						<input type="text" class="form-control" disabled value="{{ tgConfig.connectionId }}">
+					</div>
+					<div class="input-group mb-3">
+						<span class="input-group-text bg-white">Токен доступа</span>
+						<input type="text" class="form-control" disabled value="{{ tgConfig.accessToken|slice(0, 5) ~ '...' }}">
+					</div>
+				{% endif %}
+
+				{% if vkConfig is not null %}
+					<h6>ВКонтакте</h6>
+					{{ component('info_form:checkbox', {
+						'label': 'Включено', 
+						'checked': vkConfig.isEnabled
+					}) }}
+					<div class="input-group mb-3">
+						<span class="input-group-text bg-white">ID сообщества</span>
+						<input type="text" class="form-control" disabled value="{{ vkConfig.connectionId }}">
+					</div>
+					<div class="input-group mb-3">
+						<span class="input-group-text bg-white">Токен доступа</span>
+						<input type="text" class="form-control" disabled value="{{ vkConfig.accessToken|slice(0, 5) ~ '...' }}">
+					</div>
+				{% endif %}
+
+				<a class="btn btn-sm btn-primary me-auto" href="{{ path('app_bot_connections_edit', {'id': bot.id}) }}" role="button">Настроить</a>
+			{% endblock %}
+		{% endembed %}
+
+		{% embed "components/content_block.html.twig" with {'header': 'common.accesses'} %}
+			{% block content %}
+				<a class="btn btn-sm btn-primary me-auto" href="{{ path('app_bot_user_accesses_edit', {'id': bot.id}) }}" role="button">Настроить</a>
+
+				{% include 'components/accesses_table.html.twig' with {'accesses': bot.users} only %}
+			{% endblock %}
+		{% endembed %}
+	{% endif %}
 {% endblock %}

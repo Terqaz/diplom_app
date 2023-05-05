@@ -2,8 +2,12 @@
 
 namespace App\Form;
 
+use App\Entity\Bot;
 use App\Entity\Survey;
+use App\Repository\BotRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -15,13 +19,12 @@ use Symfony\Component\Validator\Constraints\Length;
 class SurveyType extends AbstractType
 {
     const INPUT_CORRECT_VALUE = 'Введите корректное значение';
-    const IS_PRIVATE_HELP = 'Пользователи, не имеющие доступа к приватному опросу не смогут найти его в поиске и просматривать информацию о нем и о заполненных анкетах';
 
-    private EntityManagerInterface $entityManager;
+    private BotRepository $botRepository;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(BotRepository $botRepository)
     {
-        $this->entityManager = $entityManager;
+        $this->botRepository = $botRepository;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -32,7 +35,9 @@ class SurveyType extends AbstractType
                 'label' => 'Название',
                 'help' => 'От 10 до 255 символов',
                 'constraints' => [
-                    new Length(min: 10, max: 255,
+                    new Length(
+                        min: 10,
+                        max: 255,
                         minMessage: self::INPUT_CORRECT_VALUE,
                         maxMessage: self::INPUT_CORRECT_VALUE,
                     )
@@ -43,28 +48,54 @@ class SurveyType extends AbstractType
                 'label' => 'Описание',
                 'help' => 'Опционально. От 16 до 1024 символов',
                 'constraints' => [
-                    new Length(min: 16, max: 1024,
+                    new Length(
+                        min: 16,
+                        max: 1024,
                         minMessage: self::INPUT_CORRECT_VALUE,
                         maxMessage: self::INPUT_CORRECT_VALUE,
                     )
                 ],
             ])
             ->add('isPrivate', CheckboxType::class, [
+                'required' => false,
                 'label' => 'Приватный',
-                'help' => self::IS_PRIVATE_HELP,
+                'help' => 'forms.common.is_private.help',
             ])
-            ->add('bot', ChoiceType::class, [
+            ->add('isEnabled', CheckboxType::class, [
+                'required' => false,
+                'label' => 'Активен',
+                'help' => 'Активные опросы доступны для прохождения в боте'
+            ]);
+
+        if ($options['is_new']) {
+            $typeOptions = [
                 'label' => 'Бот',
-                //TODO
-            ])
-//            ->add('schedule') //TODO
-        ;
+                'class' => Bot::class,
+                'choices' => $this->botRepository->findByUserId($options['user_id']),
+                'choice_label' => 'title',
+            ];
+
+            if ($options['bot'] !== null) {
+                $typeOptions['data'] = $options['bot'];
+            }
+
+            $builder
+                ->add('bot', EntityType::class, $typeOptions);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Survey::class,
+            'bot' => null
         ]);
+
+        $resolver->setRequired(['is_new']);
+        $resolver->setRequired(['user_id']);
+
+        $resolver->setAllowedTypes('user_id', 'int');
+        $resolver->setAllowedTypes('bot', [Bot::class, 'null']);
+        $resolver->setAllowedTypes('is_new', 'bool');
     }
 }

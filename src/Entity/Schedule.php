@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ScheduleRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ScheduleRepository::class)]
@@ -34,15 +35,16 @@ class Schedule
     /** Тип повторения */
     #[ORM\Column(length: 32)]
     #[Assert\Choice(choices: Schedule::TYPES)]
+    #[Groups(['surveyScheduleEdit'])]
     private ?string $type = null;
 
     /**
-     * Даты и времени для повтора.
      * Если type в течение дня, то список "часы:минуты", например: ['09:00', '13:40'].
      * Если type в течение недели или месяца, то список дней и "часы:минуты", например: [[1, 4, 5], '13:40'].
      * Если type в течение года, то список номеров месяцев, день и "часы:минуты", например: [[1, 4, 5], 15, '13:40'].
      */
     #[ORM\Column(length: 128, type: Types::JSON)]
+    #[Groups(['surveyScheduleEdit'])]
     private ?string $repeatValues = null;
 
     /** Дата следующего повторения */
@@ -51,34 +53,21 @@ class Schedule
 
     /** Провести только раз во время в nextRepeat */
     #[ORM\Column(options: ['default' => true])]
+    #[Groups(['surveyScheduleEdit'])]
     private ?bool $isOnce = true;
 
     #[ORM\Column(options: ['default' => false])]
+    #[Groups(['surveyScheduleEdit'])]
     private ?bool $isNoticeOnStart = false;
 
     /** Дополнительно оповестить за указанное число минут */
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[Groups(['surveyScheduleEdit'])]
     private ?int $noticeBefore = null;
 
-    #[ORM\OneToOne(inversedBy: 'schedule', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'schedule')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Survey $survey = null;
-
-
-    public function setTypeAndRepeatValues(string $type, string $repeatValues): self
-    {
-        $this->type = $type;
-        $this->repeatValues = $repeatValues;
-
-        $this->updateNextRepeat();
-
-        return $this;
-    }
-
-    private function updateNextRepeat(): void
-    {
-        // TODO
-    }
 
     public function getId(): ?int
     {
@@ -90,12 +79,12 @@ class Schedule
         return $this->type;
     }
 
-    // public function setType(string $type): self
-    // {
-    //     $this->type = $type;
+    public function setType(string $type): self
+    {
+        $this->type = $type;
 
-    //     return $this;
-    // }
+        return $this;
+    }
 
     public function getRepeatValues(): ?string
     {
@@ -105,8 +94,6 @@ class Schedule
     public function setRepeatValues(string $repeatValues): self
     {
         $this->repeatValues = $repeatValues;
-
-        $this->updateNextRepeat();
 
         return $this;
     }

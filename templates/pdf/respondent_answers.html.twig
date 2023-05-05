@@ -1,0 +1,110 @@
+<style>
+	table,
+	th,
+	td {
+		border: 1px solid;
+	}
+	table {
+		width: 100%;
+	}
+	table {
+		border-collapse: collapse;
+	}
+</style>
+
+<h2>Заполненные анкеты респондентов</h2>
+<p>Опрос
+	{{ survey.title }}</p>
+
+<h3>Вопросы</h3>
+<hr>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th scope="col">#</th>
+			<th scope="col">Поле</th>
+			<th scope="col">Отображен</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% if survey.isPhoneRequired %}
+			<tr>
+				<th scope="row"></th>
+				<td>Номер телефона</td>
+				<td>{{ filter.phone.isShow ? 'Да' : 'Нет' }}</td>
+			</tr>
+		{% endif %}
+		{% if survey.isEmailRequired %}
+			<tr>
+				<th scope="row"></th>
+				<td>Email</td>
+				<td>{{ filter.email.isShow ? 'Да' : 'Нет' }}</td>
+			</tr>
+		{% endif %}
+		{% for index, question in survey.questions %}
+			{% set answerFilter = filter.answers[index] %}
+			<tr>
+				<th scope="row">{{ 'Вопрос №' ~ (index + 1) }}</th>
+				<td>{{ question.title }}</td>
+				<td>{{ answerFilter.isShow ? 'Да' : 'Нет' }}</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+<h3>Ответы</h3>
+<hr>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th scope="col">#</th>
+			{% if filter.phone.isShow ?? false %}
+				<th scope="col">Телефон</th>
+			{% endif %}
+			{% if filter.email.isShow ?? false %}
+				<th scope="col">Email</th>
+			{% endif %}
+			{% for answerFilter in filter.answers %}
+				{% if answerFilter.isShow %}
+					<th scope="col">{{ 'Ответ ' ~ (loop.index) }}</th>
+				{% endif %}
+			{% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for form in forms %}
+			<tr>
+				<th scope="row">{{ loop.index }}</th>
+				{# todo phone #}
+
+				{% if form.email is defined %}
+					<td>{{ form.email }}</td>
+				{% endif %}
+
+				{% for answerFilter in filter.answers %}
+					{% if answerFilter.isShow %}
+						{% set answer = form[answerFilter.questionFormNumber] ?? null %}
+						<td>
+							{% if answer is not null %}
+
+								{% if answer.isOrdered %}
+									<ol class="ps-3 m-0">
+										{% for answerValue in answer.values %}
+											<li>{{ answerValue }}</li>
+										{% endfor %}
+									</ol>
+								{% else %}
+									{% for answerValue in answer.values %}
+										<div>{{ answerValue }}</div>
+									{% endfor %}
+								{% endif %}
+							{% endif %}
+						</td>
+					{% endif %}
+				{% endfor %}
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>

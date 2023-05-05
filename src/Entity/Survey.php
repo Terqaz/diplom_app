@@ -2,11 +2,16 @@
 
 namespace App\Entity;
 
+use App\Enum\UserRole;
 use App\Repository\SurveyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\OrderBy;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: SurveyRepository::class)]
 class Survey
@@ -14,9 +19,11 @@ class Survey
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['surveyFormEdit', 'accessesEdit', 'surveyScheduleEdit'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['surveyFormEdit', 'accessesEdit', 'surveyScheduleEdit'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 1024, nullable: true)]
@@ -28,14 +35,19 @@ class Survey
     #[ORM\Column(options: ['default' => false])]
     private ?bool $isEnabled = false;
 
-    /** Можно ли проходить несколько раз */
+    /** Предназначен ли для многоразового прохождения */
     #[ORM\Column(options: ['default' => false])]
+    #[Groups(['surveyScheduleEdit'])]
     private ?bool $isMultiple = false;
 
+    /** Обязательно ли респонденту вводить номер телефона перед опросом */
     #[ORM\Column(options: ['default' => false])]
+    #[Groups(['surveyFormEdit'])]
     private ?bool $isPhoneRequired = false;
 
+    /** Обязательно ли респонденту вводить email перед опросом */
     #[ORM\Column(options: ['default' => false])]
+    #[Groups(['surveyFormEdit'])]
     private ?bool $isEmailRequired = false;
 
     #[ORM\ManyToOne(inversedBy: 'surveys')]
@@ -43,22 +55,25 @@ class Survey
     private ?Bot $bot = null;
 
     #[ORM\OneToMany(mappedBy: 'survey', targetEntity: SurveyUser::class, cascade: ['persist'])]
-    private Collection $surveyUsers;
+    private Collection $users;
 
     #[ORM\OneToMany(mappedBy: 'survey', targetEntity: Question::class, cascade: ['persist'])]
+    #[OrderBy(['serialNumber' => 'ASC'])]
     private Collection $questions;
 
     #[ORM\OneToMany(mappedBy: 'survey', targetEntity: JumpCondition::class, orphanRemoval: true, cascade: ['persist'])]
+    #[OrderBy(['serialNumber' => 'ASC'])]
     private Collection $jumpConditions;
 
     #[ORM\OneToMany(mappedBy: 'survey', targetEntity: SurveyIteration::class, orphanRemoval: true)]
+    #[OrderBy(['startDate' => 'ASC'])]
     private Collection $surveyIterations;
 
     /** Не имеет смысл, если isMultiple=true */
     #[ORM\OneToOne(mappedBy: 'survey', cascade: ['persist', 'remove'])]
+    #[Groups(['surveyScheduleEdit'])]
     private ?Schedule $schedule = null;
 
-    /** Не имеет смысл, если isMultiple=false и schedule=null*/
     #[ORM\OneToMany(mappedBy: 'survey', targetEntity: RespondentForm::class, orphanRemoval: true)]
     private Collection $respondentForms;
 
@@ -68,11 +83,69 @@ class Survey
     public function __construct()
     {
         $this->questions = new ArrayCollection();
-        $this->surveyUsers = new ArrayCollection();
+        $this->users = new ArrayCollection();
         $this->jumpConditions = new ArrayCollection();
         $this->surveyIterations = new ArrayCollection();
         $this->respondentForms = new ArrayCollection();
         $this->respondentAccesses = new ArrayCollection();
+    }
+
+    /**
+     * @param string $role
+     * @return Collection
+     */
+    public function getUsersByRole(string $role): Collection
+    {
+        /** @var ArrayCollection $accesses */
+        $accesses = $this->users;
+
+        return $accesses->matching(
+            Criteria::create()
+                ->where(Criteria::expr()->eq('role', $role))
+        )
+            ->map(fn (SurveyUser $surveyUser): User => $surveyUser->getUserData());
+    }
+
+    /** Получить роль пользователя по отношению к опросу */
+    public function getUserRole(?User $user): string
+    {
+        if (null === $user) {
+            return UserRole::ANONYM;
+        }
+
+        /** @var ArrayCollection $accesses */
+        $accesses = $this->users;
+
+        $role = $accesses->matching(
+            Criteria::create()
+                ->where(Criteria::expr()->eq('userData', $user))
+        )
+            ->get(0)
+            ?->getRole();
+
+        if (null === $role) {
+            return UserRole::AUTHORIZED;
+        }
+
+        return $role;
+    }
+
+    public function getQuestionByNumber(int $formNumber): ?Question
+    {
+        $question = $this->questions->matching(
+            Criteria::create()->where(Criteria::expr()->eq('serialNumber', $formNumber))
+        )->first();
+
+        return $question ? $question : null;
+    }
+
+    public function getJumpConditionByNumber(int $formNumber): ?JumpCondition
+    {
+        $jump = $this->jumpConditions->matching(
+            Criteria::create()->where(Criteria::expr()->eq('serialNumber', $formNumber))
+        )->first();
+
+        return $jump ? $jump : null;
     }
 
     public function getId(): ?int
@@ -133,10 +206,10 @@ class Survey
         return $this->schedule;
     }
 
-    public function setSchedule(Schedule $schedule): self
+    public function setSchedule(?Schedule $schedule): self
     {
         // set the owning side of the relation if necessary
-        if ($schedule->getSurvey() !== $this) {
+        if ($schedule !== null && $schedule->getSurvey() !== $this) {
             $schedule->setSurvey($this);
         }
 
@@ -178,24 +251,25 @@ class Survey
     /**
      * @return Collection<int, SurveyUser>
      */
-    public function getSurveyUsers(): Collection
+    #[Groups(['userAccessesEdit'])]
+    public function getUsers(): Collection
     {
-        return $this->surveyUsers;
+        return $this->users;
     }
 
-    public function addSurveyUser(SurveyUser $surveyUser): self
+    public function addUser(SurveyUser $surveyUser): self
     {
-        if (!$this->surveyUsers->contains($surveyUser)) {
-            $this->surveyUsers->add($surveyUser);
+        if (!$this->users->contains($surveyUser)) {
+            $this->users->add($surveyUser);
             $surveyUser->setSurvey($this);
         }
 
         return $this;
     }
 
-    public function removeSurveyUser(SurveyUser $surveyUser): self
+    public function removeUser(SurveyUser $surveyUser): self
     {
-        if ($this->surveyUsers->removeElement($surveyUser)) {
+        if ($this->users->removeElement($surveyUser)) {
             // set the owning side to null (unless already changed)
             if ($surveyUser->getSurvey() === $this) {
                 $surveyUser->setSurvey(null);
@@ -303,7 +377,18 @@ class Survey
         return $this->respondentAccesses;
     }
 
-    public function addSurveyAccess(SurveyAccess $surveyAccess): self
+    public function getRespondentAccessBy(string $property, string $value): ?SurveyAccess
+    {
+        $access = $this->respondentAccesses->matching(
+            Criteria::create()
+                ->where(Criteria::expr()->eq('propertyName', $property))
+                ->andWhere(Criteria::expr()->eq('propertyValue', $value))
+        )->first();
+
+        return $access ? $access : null;
+    }
+
+    public function addRespondentAccess(SurveyAccess $surveyAccess): self
     {
         if (!$this->respondentAccesses->contains($surveyAccess)) {
             $this->respondentAccesses->add($surveyAccess);
@@ -313,7 +398,7 @@ class Survey
         return $this;
     }
 
-    public function removeSurveyAccess(SurveyAccess $surveyAccess): self
+    public function removeRespondentAccess(SurveyAccess $surveyAccess): self
     {
         if ($this->respondentAccesses->removeElement($surveyAccess)) {
             // set the owning side to null (unless already changed)

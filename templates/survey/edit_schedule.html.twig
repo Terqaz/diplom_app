@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Настройка анкеты
+{% endblock %}
+
+{% block javascripts %}
+	{{ encore_entry_script_tags('vueApp') }}
+{% endblock %}
+
+{% block stylesheets %}
+	{{ encore_entry_link_tags('vueApp') }}
+{% endblock %}
+
+{% block body %}
+	<div {{ vue_component('Survey/SurveyScheduleEdit', {'surveyData': surveyData, 'typesCatalogs': typesCatalogs} ) }}></div>
+{% endblock %}

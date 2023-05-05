@@ -25,7 +25,7 @@ class SurveyAccess
     #[ORM\ManyToOne(inversedBy: 'surveyAccesses')]
     private ?Respondent $respondent = null;
 
-    #[ORM\ManyToOne(inversedBy: 'surveyAccesses')]
+    #[ORM\ManyToOne(inversedBy: 'respondentAccesses')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Survey $survey = null;
 

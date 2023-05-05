@@ -1,0 +1,7 @@
+<div class="form-check mb-3">
+	<input type="checkbox" class="form-check-input" {% if checked %} checked {% endif %} disabled>
+	<label class="form-label mb-0">{{ label }}</label>
+	{% if help is not null %}
+		<div class="small text-muted">{{ help }}</div>
+	{% endif %}
+</div>

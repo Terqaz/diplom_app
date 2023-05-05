@@ -2,37 +2,38 @@
 
 namespace App\Entity;
 
+use App\Enum\UserRole;
 use App\Repository\SurveyUserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SurveyUserRepository::class)]
 class SurveyUser
 {
-    /** Анкетер */
-    public const QUESTIONER = 'questioner';
-    /** Просматривающий результаты */
-    public const VIEWER = 'viewer';
-
+    /** Возможные роли */
     public const ROLES = [
-        self::QUESTIONER,
-        self::VIEWER,
+        UserRole::QUESTIONER,
+        UserRole::VIEWER,
     ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['userAccessesEdit'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 32)]
     #[Assert\Choice(choices: SurveyUser::ROLES)]
+    #[Groups(['userAccessesEdit'])]
     private ?string $role = null;
 
-    #[ORM\ManyToOne(inversedBy: 'surveyUsers')]
+    #[ORM\ManyToOne(inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Survey $survey = null;
 
     #[ORM\ManyToOne(inversedBy: 'surveyUsers')]
+    #[Groups(['userAccessesEdit'])]
     private ?User $userData = null;
 
     public function getId(): ?int

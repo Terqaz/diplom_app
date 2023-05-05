@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+	{{ menu.titleText }}
+{% endblock %}
+
+{% block javascripts %}
+	{{ encore_entry_script_tags('vueApp') }}
+{% endblock %}
+
+{% block body %}
+	<div
+		class="container-fluid d-flex flex-row">
+		{# Меню #}
+		<div class="d-flex flex-column flex-shrink-0 p-3" style="width: 280px;">
+			<span class="text-center fs-4">{{ menu.titleText }}</span>
+			{% if menu.options.botId is defined %}
+				<a href="{{ path('app_bot_show', {'id': menu.options.botId}) }}" class="text-decoration-none small text-end mt-2 mb-0">{{ '< Вернуться к боту' }}</a>
+			{% endif %}
+			<hr>
+
+			{# Якоря #}
+			<div {{ vue_component('MenuAnchors') }}></div>
+			<hr>
+
+			{# Ссылки на другие страницы для той же сущности #}
+			{% if menu.links is defined %}
+				<ul class="nav nav-pills flex-column">
+					{% for link in menu.links.list %}
+						<li class="nav-item">
+							<a href="{{ path(link.routeName, {'id': menu.links.entityId }) }}" class="nav-link">
+								{{ ('menu.links.' ~ link.code)|trans }}
+							</a>
+						</li>
+					{% endfor %}
+				</ul>
+				<hr>
+			{% endif %}
+
+			{# Кнопки действий #}
+			<div class="mt-0 mb-auto d-flex flex-column">
+				{% for button in menu.buttons %}
+					<a href="{{ path(button.routeName, button.queryParams) }}" class="btn btn-sm btn-outline-primary me-auto mb-3">
+						{{ ('menu.buttons.' ~ button.code)|trans }}
+					</a>
+				{% endfor %}
+			</div>
+		</div>
+
+		{# Блок с информацией #}
+		<div class="info-block d-flex flex-column w-100 ps-3 pt-3 border-start">
+			{% block content %}{% endblock %}
+		</div>
+	</div>
+{% endblock %}

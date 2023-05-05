@@ -1,0 +1,151 @@
+{% extends 'general_show_page.html.twig' %}
+
+{% block content %}
+	{{ form_start(filterForm) }}
+
+	{% embed "components/content_block.html.twig" with {'header': 'survey_answers.show_settings'} %}
+		{% block content %}
+			{# <span class="mb-3">
+							<i class="bi bi-info-circle"></i>
+							<span class="d-inline m-0 text-black-50">
+								Выберите тип фильтра, чтобы применить его
+							</span>
+						</span> #}
+
+
+			<table class="table">
+				<thead>
+					<tr>
+						<th scope="col">#</th>
+						<th scope="col">Поле</th>
+						<th scope="col">Отобразить</th>
+						{# <th scope="col">Фильтр</th>
+												<th scope="col">Значение</th> #}
+					</tr>
+				</thead>
+				<tbody>
+					{% if survey.isPhoneRequired %}
+						<tr>
+							<th scope="row"></th>
+							<td>Номер телефона</td>
+							<td>{{ form_widget(filterForm.phone.isShow) }}</td>
+							{# <td>{{ form_widget(filterForm.phone.type) }}</td>
+														<td>{{ form_widget(filterForm.phone.value) }}</td> #}
+						</tr>
+					{% endif %}
+					{% if survey.isEmailRequired %}
+						<tr>
+							<th scope="row"></th>
+							<td>Email</td>
+							<td>{{ form_widget(filterForm.email.isShow) }}</td>
+							{# <td>{{ form_widget(filterForm.email.type) }}</td>
+														<td>{{ form_widget(filterForm.email.value) }}</td> #}
+						</tr>
+					{% endif %}
+					{% for index, question in survey.questions %}
+						{% set answerFilter = filterForm.answers[index] %}
+						<tr>
+							<th scope="row">{{ 'Вопрос №' ~ (index + 1) }}</th>
+							<td>{{ question.title }}</td>
+							<td>{{ form_widget(answerFilter.isShow) }}</td>
+							{# <td>{{ form_widget(answerFilter.type) }}</td>
+														<td>{{ form_widget(answerFilter.value) }}</td> #}
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+
+			{# hidden #}
+			{% if survey.isPhoneRequired %}
+				{{ form_widget(filterForm.phone.questionNumber) }}
+				{{ form_widget(filterForm.phone.questionFormNumber) }}
+			{% endif %}
+			{% if survey.isEmailRequired %}
+				{{ form_widget(filterForm.email.questionNumber) }}
+				{{ form_widget(filterForm.email.questionFormNumber) }}
+			{% endif %}
+			{% for answerFilter in filterForm.answers %}
+				{{ form_widget(answerFilter.questionNumber) }}
+				{{ form_widget(answerFilter.questionFormNumber) }}
+			{% endfor %}
+
+			<div class="input-group input-group-sm me-auto">
+				<span class="input-group-text">Показать первые</span>
+				{{ form_widget(filterForm.count, {'attr': {'class': 'form-select', 'style': 'max-width: 100px'}}) }}
+				{{ form_widget(filterForm.updateForms, {'attr': {'class': 'btn btn-sm btn-primary'}}) }}
+				{# <button type="submit" class="btn btn-sm btn-primary">
+									Применить
+								</button> #}
+			</div>
+		{% endblock %}
+	{% endembed %}
+
+	{% embed "components/content_block.html.twig" with {'header': 'survey_answers.forms'} %}
+		{% block content %}
+			<div class="input-group input-group-sm me-auto mb-3">
+				<span class="input-group-text">Сохранить анкеты в</span>
+				{{ form_widget(filterForm.fileFormat, {'attr': {'class': 'form-select', 'style': 'max-width: 100px'}}) }}
+				{{ form_widget(filterForm.loadFile, {'attr': {'class': 'btn btn-sm btn-primary'}}) }}
+
+				{# <button type="submit" class="btn btn-sm btn-primary">
+									Скачать
+								</button> #}
+			</div>
+
+			<table class="table table-striped-columns">
+				<thead>
+					<tr>
+						<th scope="col">#</th>
+						{% if filter.phone.isShow ?? false %}
+							<th scope="col">Телефон</th>
+						{% endif %}
+						{% if filter.email.isShow ?? false %}
+							<th scope="col">Email</th>
+						{% endif %}
+						{% for answerFilter in filter.answers %}
+							{% if answerFilter.isShow %}
+								<th scope="col">{{ 'Ответ ' ~ (loop.index) }}</th>
+							{% endif %}
+						{% endfor %}
+					</tr>
+				</thead>
+				<tbody>
+					{% for form in forms %}
+						<tr>
+							<th scope="row">{{ loop.index }}</th>
+							{# todo phone #}
+
+							{% if form.email is defined %}
+								<td>{{ form.email }}</td>
+							{% endif %}
+
+							{% for answerFilter in filter.answers %}
+								{% if answerFilter.isShow %}
+									{% set answer = form[answerFilter.questionFormNumber] ?? null %}
+									<td>
+										{% if answer is not null %}
+
+											{% if answer.isOrdered %}
+												<ol class="ps-3 m-0">
+													{% for answerValue in answer.values %}
+														<li>{{ answerValue }}</li>
+													{% endfor %}
+												</ol>
+											{% else %}
+												{% for answerValue in answer.values %}
+													<div>{{ answerValue }}</div>
+												{% endfor %}
+											{% endif %}
+										{% endif %}
+									</td>
+								{% endif %}
+							{% endfor %}
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% endblock %}
+	{% endembed %}
+
+	{{ form_end(filterForm) }}
+{% endblock %}

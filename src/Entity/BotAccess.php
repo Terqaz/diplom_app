@@ -28,7 +28,7 @@ class BotAccess
     #[ORM\ManyToOne(inversedBy: 'botAccesses')]
     private ?Respondent $respondent = null;
 
-    #[ORM\ManyToOne(inversedBy: 'botAccesses')]
+    #[ORM\ManyToOne(inversedBy: 'respondentAccesses')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Bot $bot = null;
 

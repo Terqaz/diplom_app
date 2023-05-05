@@ -1,0 +1,147 @@
+user:
+  roles:
+    admin: Администратор
+    questioner: Анкетер
+    viewer: Просматривающий результаты
+
+social_network:
+  codes:
+    tg: Телеграм
+    vk: ВКонтакте
+
+is_private:
+  "true": Приватный
+  "false": Публичный
+
+question:
+  types:
+    choose_one: Один ответ
+    choose_many: Множество ответов
+    choose_ordered: Список ответов
+    choose_all_ordered: Расположить по порядку
+
+answer_value:
+  types:
+    string: Строка
+    integer: Целое число
+    number: Число
+
+schedule:
+  types:
+    during_day: В течение дня
+    during_week: В течение недели
+    during_month: В течение месяца
+    during_year: В течение года
+    
+  notice_before: >-
+    {value, select,
+        0     {}
+        1     {{value} минуту}
+        5     {{value} минут}
+        10    {{value} минут}
+        30    {{value} минут}
+        60    {1 час}
+        120   {2 часа}
+        other {{value} минут}
+    }
+
+forms:
+  common:
+    is_private:
+      help: Если приватный, то никто не увидит его, пока вы или анкетеры не дадут доступ
+  
+  answer_filter:
+    group:
+      value: По значению
+      comparison: Сравнение
+    type:
+      value:
+        not_null: Указано
+        'null': Не указано
+        contains: Содержит подстроку
+        starts_with: Начинается с
+        ends_with: Оканчивается на
+        in: Входит в множество
+        not_in: Не входит в множество
+      comparison:
+        gt: Больше
+        gte: Больше или равно
+        lt: Меньше
+        lte: Меньше или равно
+
+  respondent_forms_chart:
+    during_last_week: За последнюю неделю
+    during_last_month: За последний месяц
+    during_last_6_months: За последние 6 месяцев
+    during_last_year: За последний год
+
+  survey:
+    schedule:
+      type:
+        help:
+          during_day: Повтор каждый день в указанные часы и минуты
+          during_week: Повтор каждую неделю в указанные дни недели в определенное время дня
+          during_month: Повтор каждый месяц в указанные дни месяца в определенное время дня
+          during_year: Повтор каждый год в указанные месяцы, в определенные день месяца и время дня
+      repeat_values:
+        help:
+          during_day: 'В формате "чч:мм", через запятую, пробелы игнорируются. Например: "12:30, 15:00"'
+          during_week: 'Множество дней недели через запятую, пробелы игнорируются. Например: "1, 4, 6"'
+          during_month: 'Множество дней месяца через запятую, пробелы игнорируются. Например: "5, 17, 29". Если номер дня больше, чем количество дней в месяце, то возьмется последний день месяца'
+          during_year: 'Множество месяцев через запятую, пробелы игнорируются. Например: "1, 4, 8, 12"'
+
+block_headers:
+  user:
+    personal: Персональные данные
+    bots: Боты
+  bot:
+    integrations: Подключения к социальным сетям
+  survey:
+    required_personal_data: Необходимые персональные данные
+    repeat_settings: Повторное проведение
+    iterations: Итерации опроса
+  survey_answers:
+    show_settings: Настройки отображения
+    forms: Анкеты
+  survey_statistics:
+    forms_by_time: Количество заполненных анкет
+    answer_variants_choosed_count: Количества выбранных вариантов ответов на вопросы
+  common:
+    main_info: Основная информация
+    surveys: Опросы
+    accesses: Доступ пользователей
+
+# в секциях common общие названия для нескольких разделов
+menu:
+  title:
+    user: Личный кабинет
+    bot: Бот {title}
+    survey: Опрос {title}
+  links:
+    survey:
+      show: Просмотр опроса
+      edit_form: Настроить анкету
+      answers: Заполненные анкеты
+      statistics: Статистика
+
+  buttons:
+    common:
+      new_bot: Новый бот
+      new_survey: Новый опрос
+
+notification:
+  survey:
+    started: |
+      Опрос "{title}" начался! 
+      Вы можете пройти его, выбрав среди доступных:
+      {surveys}
+    startSoon: >-
+      Опрос "{title}" начнется через {value, select,
+        1     {{value} минуту}
+        5     {{value} минут}
+        10    {{value} минут}
+        30    {{value} минут}
+        60    {1 час}
+        120   {2 часа}
+        other {{value} минут}
+      }!

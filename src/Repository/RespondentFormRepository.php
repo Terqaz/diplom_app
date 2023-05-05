@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\RespondentForm;
+use DateInterval;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -39,28 +41,19 @@ class RespondentFormRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return RespondentForm[] Returns an array of RespondentForm objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('r.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?RespondentForm
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function findFormsCountsByLastDaysCount(int $surveyId, int $lastDaysCount): array
+    {
+        return $this->getEntityManager()->createQuery(
+            'SELECT 
+                f.sentDate as sentDate, 
+                count(f.id) AS count 
+            FROM App\Entity\RespondentForm f
+                WHERE f.sentDate > :startDate
+                    AND f.survey = :surveyId
+            GROUP BY sentDate'
+        )
+            ->setParameter('startDate', (new DateTime())->sub(new DateInterval('P' . $lastDaysCount . 'D')))
+            ->setParameter('surveyId', $surveyId)
+            ->getArrayResult();
+    }
 }

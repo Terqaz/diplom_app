@@ -2,21 +2,15 @@
 
 namespace App\Entity;
 
+use App\Enum\SocialNetworkCode;
 use App\Repository\SocialNetworkConfigRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SocialNetworkConfigRepository::class)]
 class SocialNetworkConfig
 {
-    public const TELEGRAM_CODE = 'tg';
-    public const VKONTAKTE_CODE = 'vk';
-
-    public const CODES = [
-        self::TELEGRAM_CODE,
-        self::VKONTAKTE_CODE,
-    ];
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -24,7 +18,8 @@ class SocialNetworkConfig
 
     /** Код соц сети */
     #[ORM\Column(length: 32)]
-    #[Assert\Choice(choices: SocialNetworkConfig::CODES)]
+    #[Assert\Choice(choices: SocialNetworkCode::TYPES)]
+    #[Groups(['connectionsEdit'])]
     private ?string $code = null;
 
     /**
@@ -32,13 +27,28 @@ class SocialNetworkConfig
      * Если Telegram, то имя бота
      */
     #[ORM\Column(length: 32)]
+    #[Assert\Length(
+        min: 1,
+        max: 32
+    )]
+    #[Groups(['connectionsEdit'])]
     private ?string $connectionId = null;
 
-    // TODO
-    // 1871965994:AAFDTvdixnVqXTn-_d0UWp8GPW_O2D7b-mU
-    // 088110c08bec03540876c1f0c15cc8f5bc2934fe2fee055941d1c88487ac848151f1f65c65c89592fd45d
+    /** Включено ли подключение пользователем */
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['connectionsEdit'])]
+    private ?bool $isEnabled = false;
+
+    /** Идет ли процесс получения обновлений через вебхук или getUpdates */
+    #[ORM\Column(options: ['default' => false])]
+    private ?bool $isActive = false;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(
+        min: 40,
+        max: 255
+    )]
+    #[Groups(['connectionsEdit'])]
     private ?string $accessToken = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -109,6 +119,30 @@ class SocialNetworkConfig
     public function setConnectionId(string $connectionId): self
     {
         $this->connectionId = $connectionId;
+
+        return $this;
+    }
+
+    public function isEnabled(): ?bool
+    {
+        return $this->isEnabled;
+    }
+
+    public function setIsEnabled(bool $isEnabled): self
+    {
+        $this->isEnabled = $isEnabled;
+
+        return $this;
+    }
+
+    public function isActive(): ?bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): self
+    {
+        $this->isActive = $isActive;
 
         return $this;
     }

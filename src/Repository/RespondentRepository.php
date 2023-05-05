@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Respondent;
+use App\Enum\SocialNetworkCode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -39,28 +40,34 @@ class RespondentRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Respondent[] Returns an array of Respondent objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('r.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findOneByUpdate(string $networkCode, int $fromId): ?Respondent
+    {
+        $propertyByCode = [
+            SocialNetworkCode::TELEGRAM => 'telegramId',
+            SocialNetworkCode::VKONTAKTE => 'vkontakteId'
+        ];
 
-//    public function findOneBySomeField($value): ?Respondent
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        return $this->findOneBy([$propertyByCode[$networkCode] => $fromId]);
+    }
+
+    /**
+     * Получить респондентов, использующих бота в определенной соц сети
+     *
+     * @param integer $botId
+     * @param string $socialNetworkCode
+     * @return array<Respondent>
+     */
+    public function findByBotUsed(int $botId, string $socialNetworkCode): array
+    {
+        $idField = Respondent::SOCIAL_NETWORK_ID_FIELD[$socialNetworkCode];
+
+        return $this->createQueryBuilder('r')
+            ->join('r.botAccesses', 'ba')
+            ->join('ba.bot', 'b', 'WITH', 'b.id = :botId')
+            ->where('r.' . $idField . ' IS NOT NULL')
+            ->setParameter('botId', $botId)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

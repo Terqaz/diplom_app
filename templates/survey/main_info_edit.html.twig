@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Изменить основную информацию опроса
+{% endblock %}
+
+{% block body %}
+	<div class="container mx-auto" style="max-width: 550px">
+		<a href="{{ path('app_survey_show', {'id': survey.id}) }}" class="btn btn-outline-secondary mb-3">
+			Назад
+		</a>
+		<h3 class="mb-2 text-center">Изменить основную информацию опроса</h3>
+
+		{{ include('survey/_form.html.twig', {'button_label': 'Сохранить'}) }}
+	</div>
+{% endblock %}

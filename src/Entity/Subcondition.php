@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\SubconditionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: SubconditionRepository::class)]
 class Subcondition
@@ -18,7 +19,7 @@ class Subcondition
     #[ORM\Column(type: Types::SMALLINT)]
     private ?int $serialNumber = null;
 
-    /** Совпадает ли выбранный ответ на вопрос с answerVariant */
+    /** Совпадает ли хотя бы один выбранный ответ на вопрос с answerVariant */
     #[ORM\Column(options: ['default' => true])]
     private ?bool $isEqual = true;
 
@@ -71,7 +72,7 @@ class Subcondition
         return $this;
     }
 
-    public function isIsEqual(): ?bool
+    public function isEqual(): ?bool
     {
         return $this->isEqual;
     }

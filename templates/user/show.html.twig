@@ -1,27 +1,36 @@
-{% extends 'base.html.twig' %}
+{% extends 'general_show_page.html.twig' %}
 
-{% block title %}User{% endblock %}
+{% block content %}
+	{% embed "components/content_block.html.twig" with {'header': 'user.personal'} %}
+		{% block content %}
+			<div class="input-group mb-3">
+				<span class="input-group-text bg-white">ФИО</span>
+				<input type="text" class="form-control" value="{{ app.user.lastName }}" disabled>
+				<input type="text" class="form-control" value="{{ app.user.firstName }}" disabled>
+				<input type="text" class="form-control" placeholder="Не указано" value="{{ app.user.patronymic }}" disabled>
+			</div>
+			<div class="input-group mb-3">
+				<span class="input-group-text bg-white">Email</span>
+				<input type="text" class="form-control" value="{{ app.user.email }}" disabled>
+			</div>
+			<div class="input-group mb-4">
+				<span class="input-group-text bg-white">Номер телефона</span>
+				<input type="text" class="form-control" placeholder="Не указан" value="{{ app.user.phone }}" disabled>
+			</div>
 
-{% block body %}
-    <div class="contain-fluid h-100 d-flex flex-row">
-       {{ include('personal_account_menu.html.twig', {is_active: 'personal_data'}) }}
-        <div class="d-flex flex-column p-3">
-            <div class="input-group mb-3">
-                <span class="input-group-text bg-white" id="addon-wrapping">ФИО</span>
-                <input type="text" class="form-control" value="{{ app.user.lastName }}" disabled="disabled">
-                <input type="text" class="form-control" value="{{ app.user.firstName }}" disabled="disabled">
-                <input type="text" class="form-control" placeholder="Не указано" value="{{ app.user.patronymic }}" disabled="disabled">
-            </div>
-            <div class="input-group mb-3">
-                <span class="input-group-text bg-white" id="addon-wrapping">Email</span>
-                <input type="text" class="form-control" value="{{ app.user.email }}" disabled="disabled">
-            </div>
-            <div class="input-group mb-4">
-                <span class="input-group-text bg-white" id="addon-wrapping">Номер телефона</span>
-                <input type="text" class="form-control" placeholder="Не указано" value="{{ app.user.phone }}" disabled="disabled">
-            </div>
+			<a class="btn btn-sm btn-primary me-auto" href="{{ path('app_user_edit', {'id': app.user.id}) }}">Редактировать</a>
+		{% endblock %}
+	{% endembed %}
 
-            <a class="btn btn-primary me-auto" href="{{ path('app_user_edit', {'id': app.user.id}) }}">Редактировать</a>
-        </div>
-    </div>
+	{% include 'components/entity_list_block.html.twig' with {
+		'header': 'user.bots', 
+		'entities': bots, 
+		'entityShowRoute': 'app_bot_show'
+	} only %}
+
+	{% include 'components/entity_list_block.html.twig' with {
+		'header': 'common.surveys', 
+		'entities': surveys, 
+		'entityShowRoute': 'app_survey_show'
+	} only %}
 {% endblock %}

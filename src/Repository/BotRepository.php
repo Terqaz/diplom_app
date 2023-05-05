@@ -38,9 +38,8 @@ class BotRepository extends ServiceEntityRepository
     {
         return $this->_em->createQuery('
             SELECT b FROM App\Entity\Bot AS b
-            JOIN b.botUsers AS bu
+            JOIN b.users AS bu
             JOIN bu.userData u WITH u.id = :userId
-            WHERE bu.role IS NOT NULL
         ')
             ->setParameter('userId', $userId)
             ->getResult();

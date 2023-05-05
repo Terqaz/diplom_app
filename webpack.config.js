@@ -21,10 +21,10 @@ Encore
      * and one CSS file (e.g. app.scss) if your JavaScript imports CSS.
      */
     .addEntry('app', './assets/app.js')
-    .addEntry('about', './assets/js/about.js')
+    .addEntry('vueApp', './assets/vueApp.js')
 
     // enables the Symfony UX Stimulus bridge (used in assets/bootstrap.js)
-    // .enableStimulusBridge('./assets/controllers.json')
+    .enableStimulusBridge('./assets/controllers.json')
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
     .splitEntryChunks()
@@ -60,7 +60,7 @@ Encore
     // enables Sass/SCSS support
     .enableSassLoader()
 
-    // .enableVueLoader()
+    .enableVueLoader(() => { }, { runtimeCompilerBuild: false })
 
     // uncomment if you use TypeScript
     //.enableTypeScriptLoader()
@@ -74,6 +74,6 @@ Encore
 
     // uncomment if you're having problems with a jQuery plugin
     //.autoProvidejQuery()
-;
+    ;
 
 module.exports = Encore.getWebpackConfig();

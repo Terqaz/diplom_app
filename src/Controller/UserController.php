@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
+
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\BotRepository;
 use App\Repository\SurveyRepository;
 use App\Repository\UserRepository;
+use App\Service\Front\MenuService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -20,30 +22,15 @@ use Symfony\Component\Routing\Annotation\Route;
 class UserController extends AbstractController
 {
     #[Route('/', name: 'app_user_show', methods: ['GET'])]
-    public function show(): Response
-    {
-        return $this->render('user/show.html.twig', []);
-    }
-
-    #[Route('/bots', name: 'app_user_bot_index', methods: ['GET'])]
-    public function botIndex(BotRepository $botRepository): Response
+    public function show(MenuService $menuService, BotRepository $botRepository, SurveyRepository $surveyRepository): Response
     {
         /** @var User $user */
         $user = $this->getUser();
 
-        return $this->render('user/bots.html.twig', [
+        return $this->render('user/show.html.twig', [
             'bots' => $botRepository->findByUserId($user->getId()),
-        ]);
-    }
-
-    #[Route('/surveys', name: 'app_user_survey_index', methods: ['GET'])]
-    public function surveyIndex(SurveyRepository $surveyRepository): Response
-    {
-        /** @var User $user */
-        $user = $this->getUser();
-
-        return $this->render('user/surveys.html.twig', [
             'surveys' => $surveyRepository->findByUserId($user->getId()),
+            'menu' => $menuService->getUserMenuData()
         ]);
     }
 
@@ -67,7 +54,7 @@ class UserController extends AbstractController
             } else {
                 $form->get('actualPassword')->addError(new FormError('Укажите корректный пароль'));
 
-                return $this->renderForm('user/edit.html.twig', [
+                return $this->render('user/edit.html.twig', [
                     'user' => $user,
                     'form' => $form,
                 ]);
@@ -76,7 +63,7 @@ class UserController extends AbstractController
             return $this->redirectToRoute('app_user_show', ['id' => $user->getId()], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->renderForm('user/edit.html.twig', [
+        return $this->render('user/edit.html.twig', [
             'user' => $user,
             'form' => $form,
         ]);

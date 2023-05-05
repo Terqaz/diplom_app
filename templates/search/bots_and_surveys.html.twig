@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Результаты поиска
+{% endblock %}
+
+{% block body %}
+	<div class="container">
+		<h5 class="mx-auto text-center">Результаты поиска по ботам и опросам</h5>
+	</div>
+	<hr>
+
+	<div class="container-fluid d-flex flex-wrap justify-content-center mb-3">
+		{% for bot in bots %}
+			<div class="card m-2" style="width: 35rem">
+				<div class="card-body">
+					<h5 class="card-title">{{ bot.title }}</h5>
+
+					{% set description = bot.description|length <= 200 ? 
+                  bot.description : (bot.description[0:200] ~ '...') 
+              %}
+					<p class="card-text">{{ description }}</p>
+					<a href="{{ path('app_bot_show', {'id': bot.id}) }}" class="btn btn-sm btn-primary">
+						Перейти
+					</a>
+				</div>
+				<ul class="list-group list-group-flush">
+					{% for survey in bot.surveys %}
+						<li class="list-group-item d-flex flex-row align-items-center justify-content-between">
+							<span class="">{{ survey.title }}</span>
+							<a href="{{ path('app_survey_show', {'id': survey.id}) }}" class="btn btn-sm btn-outline-primary ms-auto">
+								Перейти
+							</a>
+						</li>
+					{% endfor %}
+				</ul>
+			</div>
+		{% else %}
+			<p>По вашему запросу ничего не найдено</p>
+		{% endfor %}
+	</div>
+{% endblock %}

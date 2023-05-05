@@ -2,24 +2,31 @@
 
 namespace App\Entity;
 
+use App\Enum\SocialNetworkCode;
 use App\Repository\RespondentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RespondentRepository::class)]
 class Respondent
 {
+    public const SOCIAL_NETWORK_ID_FIELD = [
+        SocialNetworkCode::TELEGRAM => 'telegramId',
+        SocialNetworkCode::VKONTAKTE => 'vkontakteId',
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(nullable: true, unique: true)]
+    #[ORM\Column(type: Types::BIGINT, nullable: true, unique: true)]
     private ?int $telegramId = null;
 
-    #[ORM\Column(nullable: true, unique: true)]
+    #[ORM\Column(type: Types::BIGINT, nullable: true, unique: true)]
     private ?int $vkontakteId = null;
 
     #[ORM\Column(length: 128, nullable: true, unique: true)]
@@ -29,10 +36,10 @@ class Respondent
     private ?string $phone = null;
 
     #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: RespondentAnswer::class, cascade: ['persist'])]
-    private Collection $respondentAnswers;
+    private Collection $answers;
 
     #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: RespondentForm::class, orphanRemoval: true, cascade: ['persist'])]
-    private Collection $respondentForms;
+    private Collection $forms;
 
     #[ORM\OneToMany(mappedBy: 'respondent', targetEntity: SurveyAccess::class)]
     private Collection $surveyAccesses;
@@ -43,9 +50,16 @@ class Respondent
     public function __construct()
     {
         $this->surveyAccesses = new ArrayCollection();
-        $this->respondentAnswers = new ArrayCollection();
-        $this->respondentForms = new ArrayCollection();
+        $this->answers = new ArrayCollection();
+        $this->forms = new ArrayCollection();
         $this->botAccesses = new ArrayCollection();
+    }
+
+    public function getSocialNetworkId(string $code): int|string
+    {
+        $fieldName = self::SOCIAL_NETWORK_ID_FIELD[$code];
+
+        return $this->$fieldName;
     }
 
     public function getId(): ?int
@@ -104,15 +118,15 @@ class Respondent
     /**
      * @return Collection<int, RespondentAnswer>
      */
-    public function getRespondentAnswers(): Collection
+    public function getAnswers(): Collection
     {
-        return $this->respondentAnswers;
+        return $this->answers;
     }
 
     public function addRespondentAnswer(RespondentAnswer $respondentAnswer): self
     {
-        if (!$this->respondentAnswers->contains($respondentAnswer)) {
-            $this->respondentAnswers->add($respondentAnswer);
+        if (!$this->answers->contains($respondentAnswer)) {
+            $this->answers->add($respondentAnswer);
             $respondentAnswer->setRespondent($this);
         }
 
@@ -121,7 +135,7 @@ class Respondent
 
     public function removeRespondentAnswer(RespondentAnswer $respondentAnswer): self
     {
-        if ($this->respondentAnswers->removeElement($respondentAnswer)) {
+        if ($this->answers->removeElement($respondentAnswer)) {
             // set the owning side to null (unless already changed)
             if ($respondentAnswer->getRespondent() === $this) {
                 $respondentAnswer->setRespondent(null);
@@ -134,15 +148,15 @@ class Respondent
     /**
      * @return Collection<int, RespondentForm>
      */
-    public function getRespondentForms(): Collection
+    public function getForms(): Collection
     {
-        return $this->respondentForms;
+        return $this->forms;
     }
 
     public function addRespondentForm(RespondentForm $respondentForm): self
     {
-        if (!$this->respondentForms->contains($respondentForm)) {
-            $this->respondentForms->add($respondentForm);
+        if (!$this->forms->contains($respondentForm)) {
+            $this->forms->add($respondentForm);
             $respondentForm->setRespondent($this);
         }
 
@@ -151,7 +165,7 @@ class Respondent
 
     public function removeRespondentForm(RespondentForm $respondentForm): self
     {
-        if ($this->respondentForms->removeElement($respondentForm)) {
+        if ($this->forms->removeElement($respondentForm)) {
             // set the owning side to null (unless already changed)
             if ($respondentForm->getRespondent() === $this) {
                 $respondentForm->setRespondent(null);

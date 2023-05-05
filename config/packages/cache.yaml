@@ -7,15 +7,12 @@ framework:
         # The data in this cache should persist between deploys.
         # Other options include:
 
-        # Redis
-        app: cache.adapter.redis
-        default_redis_provider: redis://localhost
-
-        # APCu (not recommended with heavy random-write workloads as memory fragmentation can cause perf issues)
-        #app: cache.adapter.apcu
-
         # Namespaced pools use the above "app" backend by default
         pools:
-            telegram.cache:
-                adapter: cache.adapter.redis
+            respondent.session.cache:
+                # TODO только на linux
+                # adapter: cache.adapter.redis
+                # default_redis_provider: redis://localhost
+
+                adapter: cache.adapter.doctrine_dbal
                 default_lifetime: 86400  # One day

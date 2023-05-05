@@ -16,23 +16,27 @@ class RespondentAnswer
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 1024, nullable: true)]
     private ?string $value = null;
 
     /** Для указания порядка ответов */
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $serialNumber = null;
 
-    #[ORM\ManyToOne(inversedBy: 'respondentAnswers')]
+    #[ORM\ManyToOne(inversedBy: 'answers')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Respondent $respondent = null;
 
-    #[ORM\ManyToOne(inversedBy: 'respondentAnswers')]
+    #[ORM\ManyToOne(inversedBy: 'answers')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Question $question = null;
 
     #[ORM\ManyToOne(inversedBy: 'respondentAnswer')]
     private ?AnswerVariant $answerVariant = null;
+
+    #[ORM\ManyToOne(inversedBy: 'answers')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?RespondentForm $form = null;
 
     public function getId(): ?int
     {
@@ -95,6 +99,18 @@ class RespondentAnswer
     public function setSerialNumber(?int $serialNumber): self
     {
         $this->serialNumber = $serialNumber;
+
+        return $this;
+    }
+
+    public function getForm(): ?RespondentForm
+    {
+        return $this->form;
+    }
+
+    public function setForm(?RespondentForm $form): self
+    {
+        $this->form = $form;
 
         return $this;
     }

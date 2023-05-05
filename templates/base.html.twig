@@ -1,42 +1,49 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Главная{% endblock %} | SurveyBots </title>
-    <link rel="icon"
-          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
 
-    {% block stylesheets %}
-        {{ encore_entry_link_tags('app') }}
-    {% endblock %}
+	<head>
+		<meta charset="UTF-8">
+		<title>
+			{% block title %} Главная {% endblock %} | SurveyBots
+		</title>
+		<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
 
-    {% block javascripts %}
-        {{ encore_entry_script_tags('app') }}
-    {% endblock %}
-</head>
+		{% block stylesheets %}
+			{{ encore_entry_link_tags('app') }}
+		{% endblock %}
 
-<body>
-<header class="d-flex flex-row align-items-center justify-content-center px-5 py-2 mb-3 border-bottom">
-    <a href="/" class="d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none">
-        <h3><b>Survey Bots</b></h3>
-    </a>
-    <form class="mb-0 ms-0 me-auto" role="search">
-        <input type="search" class="form-control" placeholder="Искать..." aria-label="Search">
-    </form>
+		{% block javascripts %}
+			{{ encore_entry_script_tags('app') }}
+		{% endblock %}
+	</head>
 
-    <div class="text-end">
-        {% if app.user %}
-            <a class="btn btn-primary me-2" href="{{ path('app_user_show') }}">
-                Личный кабинет</a>
-            <a class="btn btn-outline-primary" href="{{ path('app_logout') }}">Выход</a>
-        {% else %}
-            <a class="btn btn-outline-primary me-2" href="{{ path('app_login') }}">Вход</a>
-            <a class="btn btn-primary" href="{{ path('app_register') }}">Регистрация</a>
-        {% endif %}
-    </div>
-</header>
+	<body>
+		<div class="content__wrapper container-fluid px-auto">
+			<header class="d-flex flex-row align-items-center justify-content-center px-5 py-2 mb-3 border-bottom">
+				<a href="/" class="text-dark text-decoration-none h3 m-0 me-5" style="min-width: 140px;">
+					<strong>Survey Bots</strong>
+				</a>
 
-{% block body %}{% endblock %}
-</body>
+				<form action="{{ path('app_search') }}" method="get" class="search-input input-group mb-0 ms-0 me-auto" role="search">
+					<input type="search" name="q" class="form-control" placeholder="Название бота или опроса..." pattern=".{1,150}" aria-label="Search">
+					<button type="submit" class="btn btn-outline-primary">
+						<i class="bi bi-search"></i>
+					</button>
+				</form>
+
+				{% if app.user %}
+					<a class="btn btn-primary me-2" href="{{ path('app_user_show') }}" style="min-width: 140px;">
+						Личный кабинет</a>
+					<a class="btn btn-outline-primary" href="{{ path('app_logout') }}">Выход</a>
+				{% else %}
+					<a class="btn btn-outline-primary me-2" href="{{ path('app_login') }}">Вход</a>
+					<a class="btn btn-primary" href="{{ path('app_register') }}">Регистрация</a>
+				{% endif %}
+
+			</header>
+
+			{% block body %}{% endblock %}
+		</div>
+	</body>
 
 </html>
